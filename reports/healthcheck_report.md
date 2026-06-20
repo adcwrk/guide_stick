@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-20T06:24:40Z
+Generated: 2026-06-20T07:14:36Z
 
 Runtime: Linux/NUC
 
@@ -44,4 +44,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260620T062440Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260620T071436Z.log`
