@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import mimetypes
 import os
 import urllib.error
 import urllib.request
@@ -9,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = ROOT / "data" / "guide_webui"
+LIBRARY_DIR = ROOT / "library" / "iiab"
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 
 
@@ -21,6 +23,55 @@ def ollama_json(path, payload=None):
     req = urllib.request.Request(f"{OLLAMA_URL}{path}", data=data, headers=headers)
     with urllib.request.urlopen(req, timeout=120) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+
+def safe_child(base, requested):
+    base_resolved = base.resolve()
+    target = (base / requested).resolve()
+    if target != base_resolved and base_resolved not in target.parents:
+        return None
+    return target
+
+
+def directory_listing(path, url_path):
+    entries = []
+    for child in sorted(path.iterdir(), key=lambda item: (not item.is_dir(), item.name.lower())):
+        entries.append({
+            "name": child.name,
+            "type": "directory" if child.is_dir() else "file",
+            "url": f"{url_path.rstrip('/')}/{child.name}",
+            "size": child.stat().st_size if child.is_file() else None,
+        })
+    return entries
+
+
+def library_summary():
+    if not LIBRARY_DIR.exists():
+        return {"available": False, "root": str(LIBRARY_DIR), "entries": [], "zims": []}
+    entries = directory_listing(LIBRARY_DIR, "/library")
+    zim_dir = LIBRARY_DIR / "zims" / "content"
+    zims = []
+    if zim_dir.exists():
+        for zim in sorted(zim_dir.glob("*.zim")):
+            zims.append({"name": zim.name, "size": zim.stat().st_size, "url": f"/library/zims/content/{zim.name}"})
+    partials = []
+    for partial in zim_dir.glob(".*") if zim_dir.exists() else []:
+        if partial.is_file():
+            partials.append({"name": partial.name, "size": partial.stat().st_size})
+    return {
+        "available": True,
+        "root": str(LIBRARY_DIR),
+        "entries": entries,
+        "zims": zims,
+        "partials": sorted(partials, key=lambda item: item["name"]),
+        "common_links": [
+            {"label": "IIAB web root", "url": "/library/www/html/"},
+            {"label": "KA Lite content", "url": "/library/ka-lite/content/"},
+            {"label": "MediaWiki files", "url": "/library/mediawiki-1.42.3/"},
+            {"label": "WordPress files", "url": "/library/wordpress/"},
+            {"label": "ZIM content", "url": "/library/zims/content/"},
+        ],
+    }
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -54,6 +105,32 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(200, ollama_json("/api/tags"))
             except Exception as exc:
                 self.send_json(502, {"error": str(exc), "models": []})
+            return
+
+        if self.path == "/api/library":
+            self.send_json(200, library_summary())
+            return
+
+        if self.path == "/library" or self.path.startswith("/library/"):
+            requested = self.path.removeprefix("/library").lstrip("/")
+            target = safe_child(LIBRARY_DIR, requested)
+            if target is None or not target.exists():
+                self.send_error(404)
+                return
+            if target.is_dir():
+                self.send_json(200, {"path": f"/library/{requested}", "entries": directory_listing(target, f"/library/{requested}")})
+                return
+            content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(target.stat().st_size))
+            self.end_headers()
+            with target.open("rb") as fh:
+                while True:
+                    chunk = fh.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
             return
 
         target = STATIC_DIR / "index.html" if self.path in ("/", "/index.html") else STATIC_DIR / self.path.lstrip("/")

@@ -1,6 +1,7 @@
 # Runtime data generated on the portable USB
 anythingllm_data/
 installer_data/
+library/
 ollama/data/
 ollama/bin/
 ollama/lib/
@@ -29,3 +30,5 @@ backups/*
 # Temporary benchmark files
 .perf_bench_*.tmp
 .perf_bench_direct_*.tmp
+__pycache__/
+*/__pycache__/
