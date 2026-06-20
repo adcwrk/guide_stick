@@ -153,3 +153,50 @@
 - Status: Backlog
 - Dependencies: E08-B01, E09-B01
 - Acceptance criteria: GUIDE can be added later as a service in `config/services.json` with data under `data/guide`.
+
+## Epic E15: Offline Library UI and RAG
+
+- ID: E15-B01
+- Title: IIAB library browser in GUIDE WebUI
+- Description: Expose copied Internet-in-a-Box library content from `/mnt/usb/GUIDE/library/iiab` through the GUIDE WebUI with searchable sections and stable local links.
+- Priority: P0
+- Phase: Future
+- Status: In Progress
+- Dependencies: E08-B01, E14-B01
+- Acceptance criteria: WebUI shows Library section; `/api/library` reports copied content; files are browsable under `/library/`; deferred maps/ZIM status is visible.
+
+- ID: E15-B02
+- Title: ZIM and HTML extraction pipeline
+- Description: Add scripts to extract text and metadata from ZIM files, static HTML, MediaWiki, WordPress, KA Lite, and `documents/` into a normalized USB-local corpus.
+- Priority: P0
+- Phase: Future
+- Status: Backlog
+- Dependencies: E15-B01, E11-B01
+- Acceptance criteria: `scripts/extract-zim-content.sh` and/or equivalent extractor produces chunkable text under `data/rag/corpus`; originals are never modified or deleted.
+
+- ID: E15-B03
+- Title: Library embedding and ChromaDB index
+- Description: Install and use `nomic-embed-text` to build a persistent ChromaDB index for the imported library under `/mnt/usb/GUIDE/data/chroma/library`.
+- Priority: P0
+- Phase: Future
+- Status: Backlog
+- Dependencies: E07-B01, E15-B02, E06-B01
+- Acceptance criteria: `scripts/build-rag-index.sh` creates a resumable vector index; index metadata is written to `data/rag/library_manifest.json`; backups include index metadata.
+
+- ID: E15-B04
+- Title: Ask Library RAG mode
+- Description: Add an Ask Library mode to GUIDE WebUI that retrieves library chunks from ChromaDB, sends grounded context to Ollama, and returns answers with citations/links back to local library files.
+- Priority: P0
+- Phase: Future
+- Status: Backlog
+- Dependencies: E15-B03, E06-B01, E09-B01
+- Acceptance criteria: WebUI can answer questions from imported library content; responses include source titles and `/library/...` links; chat still works when RAG index is unavailable.
+
+- ID: E15-B05
+- Title: Long-running library import completion
+- Description: Finish copying large ZIM payloads and optional map databases from the SD/eMMC source into USB storage using resumable import jobs.
+- Priority: P1
+- Phase: Future
+- Status: In Progress
+- Dependencies: E15-B01
+- Acceptance criteria: ZIM copy completes or report identifies deferred files; `reports/iiab_library_import_report.md` is updated; WebUI library status reflects complete and partial ZIM files.

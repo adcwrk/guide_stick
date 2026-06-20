@@ -14,3 +14,9 @@ T012,Backup Recovery,Add backup script,Phase 2,P0,Complete,,Backup archive creat
 T013,Health Checks,Add Linux and macOS health checks,Phase 3,P0,Complete,T002;T005,Reports generated under reports,Services warn when not installed
 T014,Document Ingestion,Stage documents non-destructively,Phase 2,P1,Complete,T012,Source files preserved,GUI import remains manual
 T015,Future GUIDE,Reserve GUIDE path,Future,P2,Backlog,T010;T011,GUIDE documented but not built,Add data/guide and service metadata later
+T016,Offline Library UI,Expose IIAB library in GUIDE WebUI,Future,P0,In Progress,T010;T015,/api/library works and /library paths are browsable,Initial WebUI panel implemented
+T017,Offline Library Import,Complete ZIM import,Future,P1,In Progress,T016,All selected ZIM files copied or deferred files reported,Long-running rsync job active
+T018,RAG Extraction,Extract ZIM and HTML text,Future,P0,Backlog,T016,Corpus files generated under data/rag/corpus without modifying originals,Requires extractor choice
+T019,RAG Embeddings,Build ChromaDB library index,Future,P0,Backlog,T018;T009,nomic-embed-text installed and data/chroma/library populated,Index must be resumable
+T020,Ask Library UI,Add RAG query mode to GUIDE WebUI,Future,P0,Backlog,T019;T008,Answers include citations and local /library links,Fallback to normal chat if index unavailable
+T021,RAG Operations,Add library manifest and index health checks,Future,P1,Backlog,T019,library_manifest.json records sources chunks and index status,Include in healthcheck reports

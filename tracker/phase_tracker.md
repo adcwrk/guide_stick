@@ -9,3 +9,4 @@
 | Phase 2 | Health checks and backups | Complete | `scripts/healthcheck-*.sh`, `scripts/backup-portable.sh` |
 | Phase 3 | GUIDE USB validation | Complete with runtime warnings | `reports/healthcheck_report.md` |
 | Future | GUIDE integration | Not started | Backlog epic E14 |
+| Future | Offline library UI and RAG | Backlog with partial UI implemented | Backlog epic E15; `reports/iiab_library_import_report.md` |

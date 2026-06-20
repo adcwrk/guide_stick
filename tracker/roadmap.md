@@ -34,3 +34,9 @@ Future GUIDE work should:
 - Reuse LAN URL and USB detection helpers.
 - Preserve AnythingLLM and Open WebUI as supported GUI options.
 - Add authentication and service health checks before LAN exposure.
+- Expand the current GUIDE WebUI Library panel into a full offline library browser.
+- Add a RAG pipeline over copied IIAB/ZIM/HTML/document content.
+- Store extracted corpus data under `data/rag/corpus`.
+- Store library vector indexes under `data/chroma/library`.
+- Add Ask Library mode with citations to local `/library/...` URLs.
+- Keep future GUIDE integration compatible with later GUIDE service/runtime additions.
