@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-20T07:14:36Z
+Generated: 2026-06-20T07:30:36Z
 
 Runtime: Linux/NUC
 
@@ -8,8 +8,8 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 24
-- Warnings: 4
+- Passed: 25
+- Warnings: 3
 - Failed: 0
 
 | Status | Check | Detail |
@@ -37,11 +37,11 @@ Summary:
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
 | PASS | Ollama installed | /mnt/usb/GUIDE/ollama/ollama |
 | WARN | Model: qwen2.5:7b | missing |
-| WARN | Model: llama3.2:3b | missing |
+| PASS | Model: llama3.2:3b | available |
 | WARN | Model: nomic-embed-text | missing |
 | WARN | AnythingLLM reachable | not reachable on port 3001 |
 | PASS | Open WebUI reachable | port 8080 |
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260620T071436Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260620T073035Z.log`
