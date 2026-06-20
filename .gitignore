@@ -2,6 +2,8 @@
 anythingllm_data/
 installer_data/
 ollama/data/
+ollama/bin/
+ollama/lib/
 ollama_mac/
 anythingllm_mac/
 data/anythingllm/*

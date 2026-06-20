@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export LD_LIBRARY_PATH="$DIR/lib/ollama${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$DIR/bin/ollama" "$@"
