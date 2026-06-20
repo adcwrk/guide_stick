@@ -1,33 +1,44 @@
 # Healthcheck Report
 
-Generated: 2026-06-20T05:43:17Z
+Generated: 2026-06-20T05:53:01Z
+
+Runtime: Linux/NUC
 
 USB root: `/mnt/usb/Portable-AI-USB`
 
 Summary:
 
-- Passed: 12
-- Warnings: 2
-- Failed: 2
+- Passed: 21
+- Warnings: 4
+- Failed: 0
 
 | Status | Check | Detail |
 |---|---|---|
-| PASS | USB mounted | /mnt/usb/Portable-AI-USB exists |
-| PASS | USB writable | /mnt/usb/Portable-AI-USB is writable |
-| PASS | Required directory: config | present |
-| PASS | Required directory: documents | present |
-| PASS | Required directory: logs | present |
-| PASS | Required directory: backups | present |
-| PASS | Required directory: reports | present |
-| PASS | Required directory: anythingllm_data | present |
-| PASS | Required directory: ollama | present |
+| PASS | USB identity | THKAILAR validation passed where detectable |
+| PASS | Required folder: config | present |
+| PASS | Required folder: documents | present |
+| PASS | Required folder: logs | present |
+| PASS | Required folder: backups | present |
+| PASS | Required folder: reports | present |
+| PASS | Required folder: data/chroma | present |
+| PASS | Required folder: data/anythingllm | present |
+| PASS | Required folder: data/openwebui | present |
+| PASS | Required folder: scripts | present |
+| PASS | Required folder: ollama | present |
+| PASS | Executable: start-linux.sh | yes |
+| PASS | Executable: setup-linux.sh | yes |
+| PASS | Executable: scripts/detect-usb.sh | yes |
+| PASS | Executable: scripts/get-lan-url.sh | yes |
+| PASS | Executable: scripts/backup-portable.sh | yes |
+| PASS | Executable: scripts/ingest-documents.sh | yes |
 | PASS | Logs writable | /mnt/usb/Portable-AI-USB/logs |
-| PASS | Document path writable | /mnt/usb/Portable-AI-USB/documents |
-| PASS | Data path writable | /mnt/usb/Portable-AI-USB/anythingllm_data |
-| FAIL | Ollama running | http://127.0.0.1:11434/api/tags not reachable |
-| FAIL | Ollama installed | no portable or PATH ollama found |
-| WARN | AnythingLLM running | process not detected |
-| WARN | Web interface reachable | http://127.0.0.1:3001 not reachable |
+| PASS | Documents writable | /mnt/usb/Portable-AI-USB/documents |
+| PASS | ChromaDB path writable | /mnt/usb/Portable-AI-USB/data/chroma |
+| WARN | Ollama reachable | not reachable on port 11434 |
+| WARN | Ollama installed | not detected |
+| WARN | AnythingLLM reachable | not reachable on port 3001 |
+| WARN | Open WebUI reachable | not reachable on port 8080 |
+| PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/Portable-AI-USB/logs/healthcheck-mac-20260620T054316Z.log`
+Log file: `/mnt/usb/Portable-AI-USB/logs/healthcheck-linux-20260620T055300Z.log`

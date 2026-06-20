@@ -6,11 +6,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 USB_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SOURCE_DIR="${1:-$USB_DIR/documents}"
 STAGING_DIR="$USB_DIR/anythingllm_data/document_staging"
+SHARED_STAGING_DIR="$USB_DIR/data/anythingllm/document_staging"
 BACKUP_DIR="$USB_DIR/backups/document_staging"
 LOG_DIR="$USB_DIR/logs"
 LOG_FILE="$LOG_DIR/ingest-documents-$(date -u +%Y%m%dT%H%M%SZ).log"
 
-mkdir -p "$SOURCE_DIR" "$STAGING_DIR" "$BACKUP_DIR" "$LOG_DIR"
+mkdir -p "$SOURCE_DIR" "$STAGING_DIR" "$SHARED_STAGING_DIR" "$BACKUP_DIR" "$LOG_DIR"
 
 log() {
   printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_FILE"
@@ -47,6 +48,8 @@ while IFS= read -r -d '' src; do
   backup_existing "$dest"
   if cp -p "$src" "$dest"; then
     log "STAGED: $rel"
+    mkdir -p "$SHARED_STAGING_DIR/$(dirname "$rel")"
+    cp -p "$src" "$SHARED_STAGING_DIR/$rel" || log "WARN: failed to mirror staged document to data/anythingllm: $rel"
     count=$((count + 1))
   else
     log "ERROR: failed to stage $rel"

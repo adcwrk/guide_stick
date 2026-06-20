@@ -10,6 +10,7 @@ REPORT_FILE="$REPORT_DIR/healthcheck_report.md"
 LOG_FILE="$LOG_DIR/healthcheck-mac-$(date -u +%Y%m%dT%H%M%SZ).log"
 OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
 ANYTHINGLLM_URL="${ANYTHINGLLM_URL:-http://127.0.0.1:3001}"
+OPENWEBUI_URL="${OPENWEBUI_URL:-http://127.0.0.1:8080}"
 
 mkdir -p "$REPORT_DIR" "$LOG_DIR"
 
@@ -51,13 +52,14 @@ ollama_bin() {
 [ -d "$USB_DIR" ] && record PASS "USB mounted" "$USB_DIR exists" || record FAIL "USB mounted" "$USB_DIR missing"
 [ -w "$USB_DIR" ] && record PASS "USB writable" "$USB_DIR is writable" || record FAIL "USB writable" "$USB_DIR is not writable"
 
-for dir in config documents logs backups reports anythingllm_data ollama; do
+for dir in config documents logs backups reports anythingllm_data ollama data/chroma data/anythingllm data/openwebui; do
   [ -d "$USB_DIR/$dir" ] && record PASS "Required directory: $dir" "present" || record FAIL "Required directory: $dir" "missing"
 done
 
 touch "$LOG_DIR/.healthcheck_write_test" 2>/dev/null && rm -f "$LOG_DIR/.healthcheck_write_test" 2>/dev/null && record PASS "Logs writable" "$LOG_DIR" || record FAIL "Logs writable" "$LOG_DIR"
 touch "$USB_DIR/documents/.healthcheck_write_test" 2>/dev/null && rm -f "$USB_DIR/documents/.healthcheck_write_test" 2>/dev/null && record PASS "Document path writable" "$USB_DIR/documents" || record FAIL "Document path writable" "$USB_DIR/documents"
 touch "$USB_DIR/anythingllm_data/.healthcheck_write_test" 2>/dev/null && rm -f "$USB_DIR/anythingllm_data/.healthcheck_write_test" 2>/dev/null && record PASS "Data path writable" "$USB_DIR/anythingllm_data" || record FAIL "Data path writable" "$USB_DIR/anythingllm_data"
+touch "$USB_DIR/data/chroma/.healthcheck_write_test" 2>/dev/null && rm -f "$USB_DIR/data/chroma/.healthcheck_write_test" 2>/dev/null && record PASS "ChromaDB path writable" "$USB_DIR/data/chroma" || record FAIL "ChromaDB path writable" "$USB_DIR/data/chroma"
 
 if curl -fsS "$OLLAMA_URL/api/tags" >/dev/null 2>&1; then
   record PASS "Ollama running" "$OLLAMA_URL/api/tags reachable"
@@ -89,6 +91,15 @@ if curl -fsS "$ANYTHINGLLM_URL" >/dev/null 2>&1; then
 else
   record WARN "Web interface reachable" "$ANYTHINGLLM_URL not reachable"
 fi
+
+if curl -fsS "$OPENWEBUI_URL" >/dev/null 2>&1; then
+  record PASS "Open WebUI reachable" "$OPENWEBUI_URL"
+else
+  record WARN "Open WebUI reachable" "$OPENWEBUI_URL not reachable"
+fi
+
+lan_urls="$("$USB_DIR/scripts/get-lan-url.sh" 8080 2>/dev/null | tr '\n' ' ')"
+[ -n "$lan_urls" ] && record PASS "LAN URL displayed" "$lan_urls" || record WARN "LAN URL displayed" "not available"
 
 cat > "$REPORT_FILE" <<EOF
 # Healthcheck Report
