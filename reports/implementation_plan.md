@@ -2,7 +2,7 @@
 
 ## Goal
 
-Extend Portable-AI-USB for the THKAILAR USB and Apple Silicon M4 Max systems without replacing the upstream architecture.
+Extend and rename the deployment to GUIDE for the THKAILAR USB and Apple Silicon M4 Max systems without replacing the upstream Portable-AI-USB architecture.
 
 ## Preserved Workflows
 
@@ -39,7 +39,7 @@ Optional M4 Max models:
 ## USB Layout
 
 ```text
-Portable-AI-USB/
+GUIDE/
 +-- config/
 +-- documents/
 +-- logs/

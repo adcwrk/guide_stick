@@ -22,7 +22,7 @@ The current host does not have Ollama, AnythingLLM, or Open WebUI installed, so 
 ## USB Disk Utilization
 
 - USB total capacity: approximately 938 GB
-- Portable-AI-USB size after implementation and generated validation artifacts: approximately tens of MB, excluding future model downloads
+- GUIDE size after implementation and generated validation artifacts: approximately tens of MB, excluding future model downloads
 - Required persistent data folders:
   - `data/chroma`
   - `data/anythingllm`

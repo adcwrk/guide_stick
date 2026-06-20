@@ -71,7 +71,7 @@ validate_usb() {
   [ -d "$USB_DIR" ] || fail "USB root missing: $USB_DIR"
   [ -w "$USB_DIR" ] || fail "USB root is not writable: $USB_DIR"
 
-  if have findmnt && [ "$USB_DIR" = "$REQUIRED_MOUNT/Portable-AI-USB" ]; then
+  if have findmnt && { [ "$USB_DIR" = "$REQUIRED_MOUNT/GUIDE" ] || [ "$USB_DIR" = "$REQUIRED_MOUNT/Portable-AI-USB" ]; }; then
     source="$(findmnt -no SOURCE "$REQUIRED_MOUNT" 2>/dev/null || true)"
     fs="$(findmnt -no FSTYPE "$REQUIRED_MOUNT" 2>/dev/null || true)"
     label="$(lsblk -no LABEL "$source" 2>/dev/null | head -1 | xargs 2>/dev/null || true)"

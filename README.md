@@ -1,6 +1,6 @@
-# 🔒 Portable Uncensored AI — Runs Entirely from a USB Drive
+# GUIDE — Portable AI USB Deployment
 
-A **fully private, portable, uncensored AI assistant** that runs 100% from a USB flash drive. No internet needed after setup. No data leaves the USB. Works on **Windows**, **Mac**, and **Linux**.
+GUIDE is a Portable-AI-USB-compatible deployment that runs from a USB flash drive. No internet is needed after setup. Runtime data is kept on the USB where technically practical. Works on **Windows**, **Mac**, and **Linux**, with added Apple Silicon, Linux/NUC, and LAN GUI support.
 
 **Now with multi-model support!** Choose from 6 curated AI models or bring your own.
 

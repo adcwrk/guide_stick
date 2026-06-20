@@ -14,7 +14,7 @@ USB target:
 
 ## Summary
 
-This build extends Portable-AI-USB without replacing the upstream framework. It preserves the original Windows, macOS, and Linux workflows while adding:
+This build is now named GUIDE. It extends Portable-AI-USB without replacing the upstream framework, preserving the original Windows, macOS, and Linux workflows while adding:
 
 - Apple Silicon / M4 Max setup and launch support.
 - Linux/NUC setup and launch support.
@@ -63,7 +63,7 @@ This build extends Portable-AI-USB without replacing the upstream framework. It 
 ## Architecture
 
 ```text
-Portable-AI-USB/
+/mnt/usb/GUIDE/
 +-- start-mac.command
 +-- start-linux.sh
 +-- setup-mac.sh

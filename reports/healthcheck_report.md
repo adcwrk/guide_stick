@@ -4,7 +4,7 @@ Generated: 2026-06-20T05:53:01Z
 
 Runtime: Linux/NUC
 
-USB root: `/mnt/usb/Portable-AI-USB`
+USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
@@ -31,9 +31,9 @@ Summary:
 | PASS | Executable: scripts/get-lan-url.sh | yes |
 | PASS | Executable: scripts/backup-portable.sh | yes |
 | PASS | Executable: scripts/ingest-documents.sh | yes |
-| PASS | Logs writable | /mnt/usb/Portable-AI-USB/logs |
-| PASS | Documents writable | /mnt/usb/Portable-AI-USB/documents |
-| PASS | ChromaDB path writable | /mnt/usb/Portable-AI-USB/data/chroma |
+| PASS | Logs writable | /mnt/usb/GUIDE/logs |
+| PASS | Documents writable | /mnt/usb/GUIDE/documents |
+| PASS | ChromaDB path writable | /mnt/usb/GUIDE/data/chroma |
 | WARN | Ollama reachable | not reachable on port 11434 |
 | WARN | Ollama installed | not detected |
 | WARN | AnythingLLM reachable | not reachable on port 3001 |
@@ -41,4 +41,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/Portable-AI-USB/logs/healthcheck-linux-20260620T055300Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260620T055300Z.log`

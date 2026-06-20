@@ -189,7 +189,7 @@ start_anythingllm
 start_openwebui
 
 echo ""
-echo "Portable AI USB running."
+echo "GUIDE running."
 echo ""
 print_urls "AnythingLLM" "$ANYTHINGLLM_PORT"
 print_urls "Open WebUI" "$OPENWEBUI_PORT"

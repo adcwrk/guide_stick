@@ -1,4 +1,4 @@
-# Portable-AI-USB Backlog
+# GUIDE Backlog
 
 ## Epic E01: Upstream Portable-AI-USB Preservation
 

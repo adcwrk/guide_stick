@@ -48,7 +48,7 @@ if have findmnt; then
   [ -n "$source" ] && pass "mount source: $source" || fail "mount source not detected"
   [ -n "$target" ] && pass "mount target: $target" || fail "mount target not detected"
 
-  if [ "$target" = "$EXPECTED_MOUNT" ] || [ "$ROOT" = "$EXPECTED_MOUNT/Portable-AI-USB" ]; then
+  if [ "$target" = "$EXPECTED_MOUNT" ] || [ "$ROOT" = "$EXPECTED_MOUNT/GUIDE" ] || [ "$ROOT" = "$EXPECTED_MOUNT/Portable-AI-USB" ]; then
     pass "expected mount path observed: $EXPECTED_MOUNT"
   elif [ "$STRICT" = "true" ]; then
     fail "expected mount path $EXPECTED_MOUNT, observed ${target:-unknown}"

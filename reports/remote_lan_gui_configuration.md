@@ -1,6 +1,6 @@
 # Remote LAN GUI Configuration
 
-Portable-AI-USB now supports a future-ready LAN GUI configuration while preserving the upstream desktop workflows.
+GUIDE now supports a future-ready LAN GUI configuration while preserving the upstream desktop workflows.
 
 ## Defaults
 
