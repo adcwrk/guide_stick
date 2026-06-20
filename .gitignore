@@ -1,0 +1,23 @@
+# Runtime data generated on the portable USB
+anythingllm_data/
+installer_data/
+ollama/data/
+ollama_mac/
+anythingllm_mac/
+
+# Large model binaries and Ollama blobs
+models/*.gguf
+models/blobs/
+models/manifests/
+
+# Generated logs and backup archives
+logs/*
+!logs/.gitkeep
+backups/*
+!backups/.gitkeep
+!backups/source/
+!backups/source/**
+
+# Temporary benchmark files
+.perf_bench_*.tmp
+.perf_bench_direct_*.tmp
