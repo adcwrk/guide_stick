@@ -200,3 +200,59 @@
 - Status: In Progress
 - Dependencies: E15-B01
 - Acceptance criteria: ZIM copy completes or report identifies deferred files; `reports/iiab_library_import_report.md` is updated; WebUI library status reflects complete and partial ZIM files.
+
+## Epic E16: GUIDE Preparedness and Operations Platform
+
+- ID: E16-B01
+- Title: Product vision and operating doctrine
+- Description: Preserve GUIDE as Generative Unified Intelligence for Disaster and Emergency Management, an offline-first preparedness and operational decision-support platform.
+- Priority: P0
+- Phase: Future
+- Status: In Progress
+- Dependencies: E14-B01
+- Acceptance criteria: Product vision exists in `reports/guide_product_vision.md`; roadmap and implementation tasks align to preparedness, response, trusted knowledge, and operational decision support.
+
+- ID: E16-B02
+- Title: Household intake and preparedness profile
+- Description: Capture household or organization profile data including people, ages, medical conditions, medications, pets, power dependencies, mobility limitations, and preparedness goals.
+- Priority: P0
+- Phase: Future
+- Status: Backlog
+- Dependencies: E16-B01, E09-B01
+- Acceptance criteria: Profile schema exists; data is stored on USB; WebUI can collect and edit intake data; recommendations can use profile context.
+
+- ID: E16-B03
+- Title: Preparedness inventory and gap analysis
+- Description: Track water, food, medical supplies, medications, fuel, power systems, communications equipment, and shelter supplies, then calculate requirements and gaps.
+- Priority: P0
+- Phase: Future
+- Status: Backlog
+- Dependencies: E16-B02
+- Acceptance criteria: Inventory schema exists; duration and shortfall calculations work; WebUI displays critical gaps and recommended actions.
+
+- ID: E16-B04
+- Title: Incident management workspace
+- Description: Add incident records for medical emergencies, power outages, severe weather, wildfires, flooding, search and rescue, and communications failures.
+- Priority: P1
+- Phase: Future
+- Status: Backlog
+- Dependencies: E16-B02, E15-B04
+- Acceptance criteria: Incidents include status, timeline, documentation, resources, and AI-assisted recommendations with sources.
+
+- ID: E16-B05
+- Title: Communications planning center
+- Description: Prepare for Meshtastic, radio planning, message drafting, message compression, communications logging, and network visualization.
+- Priority: P1
+- Phase: Future
+- Status: Backlog
+- Dependencies: E16-B04
+- Acceptance criteria: Communications plan schema exists; message templates exist; future Meshtastic integration path is documented.
+
+- ID: E16-B06
+- Title: Maps and situational awareness
+- Description: Integrate hazards, incidents, resources, shelters, hospitals, communications infrastructure, and evacuation routes into an offline map workflow.
+- Priority: P1
+- Phase: Future
+- Status: Backlog
+- Dependencies: E15-B05, E16-B04
+- Acceptance criteria: Offline map source strategy is documented; WebUI can reference local map resources; incident/resource locations can be represented.

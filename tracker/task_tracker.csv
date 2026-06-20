@@ -20,3 +20,9 @@ T018,RAG Extraction,Extract ZIM and HTML text,Future,P0,Backlog,T016,Corpus file
 T019,RAG Embeddings,Build ChromaDB library index,Future,P0,Backlog,T018;T009,nomic-embed-text installed and data/chroma/library populated,Index must be resumable
 T020,Ask Library UI,Add RAG query mode to GUIDE WebUI,Future,P0,Backlog,T019;T008,Answers include citations and local /library links,Fallback to normal chat if index unavailable
 T021,RAG Operations,Add library manifest and index health checks,Future,P1,Backlog,T019,library_manifest.json records sources chunks and index status,Include in healthcheck reports
+T022,GUIDE Vision,Capture product vision and doctrine,Future,P0,In Progress,T015,guide_product_vision.md exists and roadmap references it,Defines GUIDE as disaster and emergency management platform
+T023,Household Profile,Add intake and preparedness profile schema,Future,P0,Backlog,T022,USB-local profile data can be collected and edited,Include household people pets medical power mobility goals
+T024,Inventory Management,Add preparedness inventory and gap calculations,Future,P0,Backlog,T023,Water food medical fuel power comms and shelter requirements calculated,Support how-long-will-it-last questions
+T025,Incident Management,Add incident records and operational timeline,Future,P1,Backlog,T020;T023,Incidents track status resources documentation and recommendations,Support wildfire flood outage medical SAR comms failures
+T026,Communications Center,Add communications planning path,Future,P1,Backlog,T025,Message templates logs and future Meshtastic path documented,Do not require internet
+T027,Situational Awareness,Add offline map and resource context path,Future,P1,Backlog,T017;T025,Hazards resources shelters hospitals routes and comms infrastructure can be represented,Depends on map import strategy

@@ -25,7 +25,7 @@
 
 ## Future Phase: GUIDE
 
-GUIDE is intentionally not built yet.
+GUIDE is now defined as Generative Unified Intelligence for Disaster and Emergency Management. It is an offline-first preparedness, response, and operational decision-support platform.
 
 Future GUIDE work should:
 
@@ -40,3 +40,8 @@ Future GUIDE work should:
 - Store library vector indexes under `data/chroma/library`.
 - Add Ask Library mode with citations to local `/library/...` URLs.
 - Keep future GUIDE integration compatible with later GUIDE service/runtime additions.
+- Add household intake and preparedness profiles.
+- Add inventory management and preparedness gap analysis.
+- Add incident management with timelines, resources, and recommendations.
+- Add communications planning with a future Meshtastic integration path.
+- Add maps and situational awareness for hazards, resources, shelters, hospitals, communications infrastructure, and evacuation routes.

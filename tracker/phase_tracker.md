@@ -10,3 +10,4 @@
 | Phase 3 | GUIDE USB validation | Complete with runtime warnings | `reports/healthcheck_report.md` |
 | Future | GUIDE integration | Not started | Backlog epic E14 |
 | Future | Offline library UI and RAG | Backlog with partial UI implemented | Backlog epic E15; `reports/iiab_library_import_report.md` |
+| Future | GUIDE preparedness and operations platform | Vision captured | Backlog epic E16; `reports/guide_product_vision.md` |

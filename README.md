@@ -2,6 +2,8 @@
 
 GUIDE is a Portable-AI-USB-compatible deployment that runs from a USB flash drive. No internet is needed after setup. Runtime data is kept on the USB where technically practical. Works on **Windows**, **Mac**, and **Linux**, with added Apple Silicon, Linux/NUC, and LAN GUI support.
 
+GUIDE also stands for **Generative Unified Intelligence for Disaster and Emergency Management**. The long-term product vision is an offline-first preparedness, response, and operational decision-support platform, not only a chatbot. See `reports/guide_product_vision.md` for the full mission, platform model, and roadmap direction.
+
 **Now with multi-model support!** Choose from 6 curated AI models or bring your own.
 
 ## 📺 Watch the Tutorial
