@@ -229,6 +229,21 @@ anythingllm_data/storage/.env
 
 The launchers pass a USB-local Electron profile using `--user-data-dir`.
 
+## Open WebUI Compatibility
+
+The upstream repository does not include Open WebUI installation, configuration, startup, authentication, or persistence scripts. Compatibility is still straightforward because Open WebUI can use Ollama as its backend over HTTP.
+
+Required integration points for a Portable-AI-USB-compatible extension:
+
+- Preserve Ollama as the backend at `http://127.0.0.1:11434`.
+- Store Open WebUI data on USB under `data/openwebui/`.
+- Bind Open WebUI to `0.0.0.0` only for LAN GUI access.
+- Keep Ollama remote API disabled by default.
+- Require Open WebUI account creation or authentication before remote use.
+- Detect occupied ports instead of killing existing host services.
+
+Open WebUI is best treated as an additional GUI layer, not a replacement for AnythingLLM.
+
 ## Model Management Workflow
 
 The original model workflow is GGUF-centric:
@@ -255,6 +270,8 @@ Current preset model local names:
 The repository does not include a script-level document ingestion workflow. AnythingLLM handles document upload, workspace assignment, embedding, and vector storage inside its desktop application.
 
 Expected storage is under `anythingllm_data/`, but the exact document and vector DB layout is managed by AnythingLLM itself.
+
+For future multi-GUI deployments, document ingestion should stage source files from `documents/` into USB-local service data directories without deleting originals. Any GUI-specific import should remain opt-in because AnythingLLM and Open WebUI have different ingestion APIs and workspace concepts.
 
 ## Knowledge Storage Workflow
 
@@ -291,6 +308,8 @@ Cache deletion exists for Electron path portability:
 
 These are runtime cache folders, not user document backups.
 
+For ChromaDB and Open WebUI additions, backups must preserve vector stores and application databases before any migration or schema-changing operation.
+
 ## Portability Mechanisms
 
 Primary mechanisms:
@@ -317,6 +336,17 @@ The Windows setup still requires a manual AnythingLLM installer location selecti
 | `XDG_DATA_HOME` | Linux | USB-local app data |
 | `XDG_CACHE_HOME` | Linux | USB-local cache |
 | `OLLAMA_HOST` | Linux | Bind Ollama to localhost |
+
+Remote-GUI additions should use a USB-local env file rather than hard-coded values:
+
+- `ENABLE_REMOTE_ACCESS`
+- `ENABLE_REMOTE_OLLAMA`
+- `ENABLE_AUTH`
+- `ANYTHINGLLM_PORT`
+- `OPENWEBUI_PORT`
+- `OLLAMA_PORT`
+- `BIND_ADDRESS`
+- `LAN_ONLY`
 
 ## macOS Support
 
@@ -377,6 +407,7 @@ Compatibility concerns:
 - AppImage support depends on FUSE or extract-and-run compatibility.
 - Ollama tarball URL targets amd64, not ARM Linux.
 - Preflight uses Linux-specific commands and Unicode terminal output.
+- Existing NUC services may already occupy Ollama, AnythingLLM, or Open WebUI ports and must not be killed automatically.
 
 ## USB Path Detection Logic
 
@@ -389,6 +420,14 @@ Compatibility concerns:
 
 There is no current cross-platform validation for a specific label, UUID, or filesystem outside the Linux preflight.
 
+For a NUC deployment mounted at `/mnt/usb`, the extension should validate:
+
+- mountpoint `/mnt/usb`
+- label `THKAILAR`, when detectable
+- UUID `6676-08D4`, when detectable
+- filesystem `exfat`
+- write access from the active user
+
 ## Browser Launch Workflow
 
 The project launches AnythingLLM Desktop, not a browser-based web UI.
@@ -398,6 +437,39 @@ The project launches AnythingLLM Desktop, not a browser-based web UI.
 - Linux starts `AnythingLLM.AppImage`.
 
 No script currently opens `http://127.0.0.1:<port>` in a browser. The requested Apple Silicon extension should preserve the desktop workflow and may optionally open the local web interface when reachable.
+
+Remote GUI support changes this surface by adding LAN-printable URLs for browser clients while keeping desktop AnythingLLM startup intact.
+
+## Remote Access Assumptions
+
+The upstream project assumes local interactive use from the machine where the USB is plugged in. It does not expose GUI services on `0.0.0.0`, print LAN URLs, manage firewall rules, configure TLS, or implement LAN-only network filtering.
+
+Safe remote extension assumptions:
+
+- GUI LAN access can be enabled by binding GUI services to `0.0.0.0`.
+- Ollama should remain bound to localhost unless `ENABLE_REMOTE_OLLAMA=true`.
+- LAN URLs should be printed from detected non-loopback IPv4 addresses.
+- Authentication must be required where the GUI supports it.
+- Scripts should report occupied ports and avoid stopping host services.
+
+## Security and Authentication Gaps
+
+Upstream gaps:
+
+- No authentication configuration layer.
+- No password or secret handling policy.
+- No LAN exposure controls.
+- No warning when a GUI is exposed without authentication.
+- No TLS termination or reverse proxy.
+- No per-user authorization model in the scripts.
+
+Required preservation-compatible approach:
+
+- Do not hard-code passwords.
+- Provide `config/portable.env.example`.
+- Default `ENABLE_AUTH=true`.
+- Document first-run admin setup for GUIs that support it.
+- Add backlog items for unsupported or incomplete authentication controls.
 
 ## Dependency Installation Workflow
 
@@ -430,6 +502,7 @@ Linux:
 - Moving between hosts requires Electron path cache cleanup.
 - After setup, the system should work offline.
 - A user can safely keep all chat and settings data on the USB if the launchers set the expected environment variables.
+- The user is operating locally, not exposing GUI services across a LAN.
 
 ## Data Flow Diagram
 
@@ -503,6 +576,19 @@ Installer
 | Linux installer core | `linux/install-core.sh` | Model download, Ollama/AnythingLLM setup |
 | Linux preflight | `linux/preflight-check.sh` | USB validation and speed benchmark |
 | Linux launcher | `linux/start-linux.sh` | Starts portable runtime |
+
+## What Must Be Preserved
+
+- Upstream file names and user-facing entry points.
+- USB-relative path resolution.
+- Windows `install.bat` and `start-windows.bat` behavior.
+- Linux upstream install workflow under `linux/`.
+- macOS `start-mac.command` double-click workflow.
+- Ollama as the backend runtime.
+- AnythingLLM as a supported GUI.
+- Existing GGUF model catalog and `installed-models.txt` compatibility.
+- Existing document privacy promise that data remains on the USB whenever technically practical.
+- Non-destructive cache cleanup intent for portability.
 
 ## Improvement Opportunities
 
