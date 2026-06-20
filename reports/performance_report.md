@@ -5,7 +5,7 @@ Generated: 2026-06-20T05:55:00Z
 Target USB:
 
 - Device: `/dev/sdb1`
-- Label: `THKAILAR`
+- Label: `GUIDE`
 - UUID: `6676-08D4`
 - Filesystem: `exfat`
 - Mountpoint: `/mnt/usb`

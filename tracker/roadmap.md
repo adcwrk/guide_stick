@@ -17,7 +17,7 @@
 
 ## Phase 3: Validation
 
-- Validate THKAILAR USB identity and writability.
+- Validate GUIDE USB identity and writability.
 - Run health checks.
 - Run backup automation.
 - Record performance measurements.

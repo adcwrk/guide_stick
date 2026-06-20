@@ -110,7 +110,7 @@ bash setup-linux.sh
 bash start-linux.sh
 ```
 
-The NUC launcher validates the THKAILAR USB, detects host Ollama where available, avoids killing existing services, starts configured GUIs when possible, and prints LAN URLs.
+The NUC launcher validates the GUIDE USB, detects host Ollama where available, avoids killing existing services, starts configured GUIs when possible, and prints LAN URLs.
 
 ### 🐧 On Linux
 

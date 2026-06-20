@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-20T05:53:01Z
+Generated: 2026-06-20T06:05:22Z
 
 Runtime: Linux/NUC
 
@@ -14,7 +14,7 @@ Summary:
 
 | Status | Check | Detail |
 |---|---|---|
-| PASS | USB identity | THKAILAR validation passed where detectable |
+| PASS | USB identity | GUIDE validation passed where detectable |
 | PASS | Required folder: config | present |
 | PASS | Required folder: documents | present |
 | PASS | Required folder: logs | present |
@@ -41,4 +41,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260620T055300Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260620T060521Z.log`

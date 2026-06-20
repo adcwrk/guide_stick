@@ -7,7 +7,7 @@ Branch: `portable-ai-usb-thkailar-m4-nuc-remote-gui`
 USB target:
 
 - Device: `/dev/sdb1`
-- Label: `THKAILAR`
+- Label: `GUIDE`
 - UUID: `6676-08D4`
 - Filesystem: `exfat`
 - Mountpoint: `/mnt/usb`
@@ -117,7 +117,7 @@ Entry points:
 
 Capabilities:
 
-- Validates `/mnt/usb` THKAILAR identity where detectable.
+- Validates `/mnt/usb` GUIDE identity where detectable.
 - Detects Linux architecture.
 - Uses host Ollama or portable `ollama/ollama`.
 - Does not kill existing services.
@@ -156,7 +156,7 @@ Passed:
 
 - USB mounted at `/mnt/usb`.
 - USB writable.
-- Label `THKAILAR` detected.
+- Label `GUIDE` detected.
 - UUID `6676-08D4` detected.
 - Filesystem `exfat` detected.
 - Required folders exist.

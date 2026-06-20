@@ -62,7 +62,7 @@ ollama_bin() {
 }
 
 if "$USB_DIR/scripts/detect-usb.sh" "$USB_DIR" >>"$LOG_FILE" 2>&1; then
-  record PASS "USB identity" "THKAILAR validation passed where detectable"
+  record PASS "USB identity" "GUIDE validation passed where detectable"
 else
   record FAIL "USB identity" "see $LOG_FILE"
 fi

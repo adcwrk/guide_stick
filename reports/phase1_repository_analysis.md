@@ -7,7 +7,7 @@ Branch analyzed: `portable-ai-usb-thkailar-m4`
 USB target used for analysis:
 
 - Device: `/dev/sdb1`
-- Label: `THKAILAR`
+- Label: `GUIDE`
 - UUID: `6676-08D4`
 - Filesystem: `exfat`
 - Mountpoint: `/mnt/usb`
@@ -370,7 +370,7 @@ Gaps:
 - No backup workflow.
 - No robust Ollama API readiness loop.
 - No explicit Metal acceleration check.
-- No validation of THKAILAR USB identity.
+- No validation of GUIDE USB identity.
 
 ## Windows Support
 
@@ -423,7 +423,7 @@ There is no current cross-platform validation for a specific label, UUID, or fil
 For a NUC deployment mounted at `/mnt/usb`, the extension should validate:
 
 - mountpoint `/mnt/usb`
-- label `THKAILAR`, when detectable
+- label `GUIDE`, when detectable
 - UUID `6676-08D4`, when detectable
 - filesystem `exfat`
 - write access from the active user
@@ -598,7 +598,7 @@ Installer
 4. Add durable logs under `logs/`.
 5. Add non-destructive backups under `backups/`.
 6. Add document ingestion helper that preserves originals.
-7. Add THKAILAR USB identity validation.
+7. Add GUIDE USB identity validation.
 8. Add robust Ollama API readiness loops.
 9. Add model availability checks before launching AnythingLLM.
 10. Preserve desktop app workflow while optionally opening reachable local UI.

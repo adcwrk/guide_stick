@@ -2,7 +2,7 @@
 
 ## Goal
 
-Extend and rename the deployment to GUIDE for the THKAILAR USB and Apple Silicon M4 Max systems without replacing the upstream Portable-AI-USB architecture.
+Extend and rename the deployment to GUIDE for the GUIDE USB and Apple Silicon M4 Max systems without replacing the upstream Portable-AI-USB architecture.
 
 ## Preserved Workflows
 
@@ -57,7 +57,7 @@ GUIDE/
 
 ## Validation Strategy
 
-1. Validate THKAILAR mount identity and writability before changes.
+1. Validate GUIDE mount identity and writability before changes.
 2. Validate Bash syntax for added scripts.
 3. Validate JSON syntax for model metadata.
 4. Run health check against the current USB state.

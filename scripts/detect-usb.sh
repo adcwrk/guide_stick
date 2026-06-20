@@ -4,7 +4,7 @@ set -u
 
 ROOT="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 EXPECTED_MOUNT="${EXPECTED_USB_MOUNT:-/mnt/usb}"
-EXPECTED_LABEL="${EXPECTED_USB_LABEL:-THKAILAR}"
+EXPECTED_LABEL="${EXPECTED_USB_LABEL:-GUIDE}"
 EXPECTED_UUID="${EXPECTED_USB_UUID:-6676-08D4}"
 EXPECTED_FS="${EXPECTED_USB_FS:-exfat}"
 STRICT="${STRICT_USB_VALIDATION:-false}"
@@ -53,7 +53,7 @@ if have findmnt; then
   elif [ "$STRICT" = "true" ]; then
     fail "expected mount path $EXPECTED_MOUNT, observed ${target:-unknown}"
   else
-    warn "mount path is ${target:-unknown}; expected $EXPECTED_MOUNT for THKAILAR validation"
+    warn "mount path is ${target:-unknown}; expected $EXPECTED_MOUNT for GUIDE validation"
   fi
 
   [ "$fs" = "$EXPECTED_FS" ] && pass "filesystem: $fs" || fail "expected filesystem $EXPECTED_FS, observed ${fs:-unknown}"
