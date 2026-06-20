@@ -87,6 +87,31 @@ By default, the installer configures Ollama with a 4K token limit for optimal pe
 - The AnythingLLM window will open automatically.
 - Press ENTER in the terminal to safely shut down.
 
+### Apple Silicon / Remote GUI Mode
+
+This enhanced USB build keeps the original launcher behavior and adds optional LAN GUI support through `config/portable.env`.
+
+1. Copy `config/portable.env.example` to `config/portable.env`.
+2. Review the remote access defaults:
+   - GUI remote access is enabled on LAN with `BIND_ADDRESS=0.0.0.0`.
+   - Ollama remote API stays disabled unless `ENABLE_REMOTE_OLLAMA=true`.
+   - GUI authentication is expected with `ENABLE_AUTH=true`.
+3. Run `bash setup-mac.sh` on Apple Silicon to prepare models and USB folders.
+4. Start with `./start-mac.command`.
+
+The launcher prints local, LAN, and hostname URLs for AnythingLLM and Open WebUI when available.
+
+### Linux / Intel NUC
+
+Root-level NUC scripts are provided without replacing the upstream Linux folder:
+
+```bash
+bash setup-linux.sh
+bash start-linux.sh
+```
+
+The NUC launcher validates the THKAILAR USB, detects host Ollama where available, avoids killing existing services, starts configured GUIs when possible, and prints LAN URLs.
+
 ### 🐧 On Linux
 
 1. Open a terminal on your USB drive.
@@ -113,6 +138,16 @@ By default, the installer configures Ollama with a 4K token limit for optimal pe
 - No registry keys or local files are left behind.
 - Works completely offline after initial setup.
 - No telemetry, no cloud, no tracking.
+
+## 🔐 LAN Access and Authentication
+
+Remote GUI access is intended for trusted LANs only. Do not expose these ports directly to the public internet.
+
+- AnythingLLM: default port `3001`
+- Open WebUI: default port `8080`
+- Ollama: default port `11434`, remote access disabled unless `ENABLE_REMOTE_OLLAMA=true`
+
+No passwords are hard-coded in this repository. Complete the GUI's first-run admin or user setup before relying on LAN access. If a selected GUI/runtime does not expose authentication in the launch mode being used, treat LAN access as unsafe and disable it in `config/portable.env`.
 
 ## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
 
