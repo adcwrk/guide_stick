@@ -1,0 +1,44 @@
+{
+  "services": [
+    {
+      "name": "ollama",
+      "role": "model_backend",
+      "default_port": 11434,
+      "default_bind": "127.0.0.1",
+      "remote_default": false,
+      "data_path": "ollama/data",
+      "auth": "none",
+      "notes": "Remote Ollama API exposure is disabled unless ENABLE_REMOTE_OLLAMA=true."
+    },
+    {
+      "name": "anythingllm",
+      "role": "primary_gui",
+      "default_port": 3001,
+      "default_bind": "0.0.0.0",
+      "remote_default": true,
+      "data_path": "data/anythingllm",
+      "auth": "gui_first_run_or_app_managed",
+      "notes": "Authentication must be completed in the AnythingLLM UI where supported. Desktop AppImage may not expose a LAN web server."
+    },
+    {
+      "name": "openwebui",
+      "role": "secondary_gui",
+      "default_port": 8080,
+      "default_bind": "0.0.0.0",
+      "remote_default": true,
+      "data_path": "data/openwebui",
+      "auth": "first_run_admin_account",
+      "notes": "Open WebUI normally requires first user/admin account creation. Store persistent data on USB."
+    },
+    {
+      "name": "chromadb",
+      "role": "vector_store",
+      "default_port": null,
+      "default_bind": "localhost",
+      "remote_default": false,
+      "data_path": "data/chroma",
+      "auth": "local_storage",
+      "notes": "Preserve vector stores and back up before migrations."
+    }
+  ]
+}

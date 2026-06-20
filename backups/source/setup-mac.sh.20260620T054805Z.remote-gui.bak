@@ -16,8 +16,6 @@ INSTALLER_DIR="$USB_DIR/installer_data"
 OLLAMA_MODELS_DIR="$USB_DIR/ollama/data"
 ANYTHINGLLM_DATA_DIR="$USB_DIR/anythingllm_data"
 ENV_FILE="$ANYTHINGLLM_DATA_DIR/storage/.env"
-PORTABLE_ENV="$USB_DIR/config/portable.env"
-ENV_EXAMPLE="$USB_DIR/config/portable.env.example"
 LOG_FILE="$LOG_DIR/setup-mac-$(date -u +%Y%m%dT%H%M%SZ).log"
 
 REQUIRED_LABEL="${REQUIRED_USB_LABEL:-THKAILAR}"
@@ -25,21 +23,7 @@ REQUIRED_UUID="${REQUIRED_USB_UUID:-6676-08D4}"
 REQUIRED_MOUNT="${REQUIRED_USB_MOUNT:-/mnt/usb}"
 PULL_OPTIONAL="${PULL_OPTIONAL_MODELS:-0}"
 
-if [ -f "$ENV_EXAMPLE" ]; then
-  # shellcheck disable=SC1090
-  . "$ENV_EXAMPLE"
-fi
-if [ -f "$PORTABLE_ENV" ]; then
-  # shellcheck disable=SC1090
-  . "$PORTABLE_ENV"
-fi
-
-PULL_DEFAULT_MODELS="${PULL_DEFAULT_MODELS:-true}"
-PULL_OPTIONAL_MODELS="${PULL_OPTIONAL_MODELS:-false}"
-ENABLE_AUTH="${ENABLE_AUTH:-true}"
-ENABLE_REMOTE_OLLAMA="${ENABLE_REMOTE_OLLAMA:-false}"
-
-mkdir -p "$LOG_DIR" "$REPORT_DIR" "$CONFIG_DIR" "$DOCUMENTS_DIR" "$BACKUP_DIR" "$INSTALLER_DIR" "$OLLAMA_MODELS_DIR" "$ANYTHINGLLM_DATA_DIR/storage" "$USB_DIR/data/chroma" "$USB_DIR/data/anythingllm" "$USB_DIR/data/openwebui"
+mkdir -p "$LOG_DIR" "$REPORT_DIR" "$CONFIG_DIR" "$DOCUMENTS_DIR" "$BACKUP_DIR" "$INSTALLER_DIR" "$OLLAMA_MODELS_DIR" "$ANYTHINGLLM_DATA_DIR/storage"
 
 log() {
   printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG_FILE"
@@ -146,8 +130,6 @@ EOF
 
 log "Portable-AI-USB macOS setup started"
 validate_usb
-log "GUI authentication requested: $ENABLE_AUTH"
-log "Remote Ollama enabled: $ENABLE_REMOTE_OLLAMA"
 
 if [ "$(uname -s)" = "Darwin" ]; then
   arch="$(uname -m)"
@@ -170,24 +152,17 @@ else
 fi
 
 ensure_ollama_ready
-if [ "$PULL_DEFAULT_MODELS" = "true" ]; then
-  pull_model_if_missing "qwen2.5:7b"
-  pull_model_if_missing "llama3.2:3b"
-  pull_model_if_missing "nomic-embed-text"
-else
-  log "Default model pulling disabled by PULL_DEFAULT_MODELS"
-fi
+pull_model_if_missing "qwen2.5:7b"
+pull_model_if_missing "llama3.2:3b"
+pull_model_if_missing "nomic-embed-text"
 
-if [ "$PULL_OPTIONAL" = "1" ] || [ "$PULL_OPTIONAL_MODELS" = "true" ]; then
+if [ "$PULL_OPTIONAL" = "1" ]; then
   pull_model_if_missing "qwen2.5:14b"
   pull_model_if_missing "llama3.1:8b"
   pull_model_if_missing "deepseek-r1:14b"
 fi
 
 write_anythingllm_env
-log "Open WebUI data path prepared: $USB_DIR/data/openwebui"
-log "ChromaDB data path prepared: $USB_DIR/data/chroma"
-log "If Open WebUI is installed, complete first-run admin account creation before LAN use."
 
 if [ -x "$USB_DIR/scripts/healthcheck-mac.sh" ]; then
   bash "$USB_DIR/scripts/healthcheck-mac.sh" || log "WARN: healthcheck returned non-zero"

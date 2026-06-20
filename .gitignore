@@ -4,6 +4,12 @@ installer_data/
 ollama/data/
 ollama_mac/
 anythingllm_mac/
+data/anythingllm/*
+!data/anythingllm/.gitkeep
+data/openwebui/*
+!data/openwebui/.gitkeep
+data/chroma/*
+!data/chroma/.gitkeep
 
 # Large model binaries and Ollama blobs
 models/*.gguf

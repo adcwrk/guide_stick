@@ -17,6 +17,8 @@
       "ram_guidance": "Recommended 16 GB unified memory or higher; excellent fit for M4 Max.",
       "disk_usage": "Approximately 4.7 GB in Ollama model storage.",
       "pull_command": "ollama pull qwen2.5:7b",
+      "mac_m4_max_notes": "Recommended default. Uses Ollama's native macOS acceleration path and should fit comfortably in unified memory.",
+      "nuc_linux_notes": "Good default if the NUC has 16 GB+ RAM. On smaller NUCs, keep llama3.2:3b as the operational fallback.",
       "performance_notes": "Good default latency and quality balance. Uses Apple Silicon acceleration through Ollama on macOS."
     },
     {
@@ -25,6 +27,8 @@
       "ram_guidance": "Recommended 8 GB unified memory or higher.",
       "disk_usage": "Approximately 2.0 GB in Ollama model storage.",
       "pull_command": "ollama pull llama3.2:3b",
+      "mac_m4_max_notes": "Very fast fallback for startup tests, health checks, and low-latency responses.",
+      "nuc_linux_notes": "Recommended fallback for low-power Intel NUC systems or CPU-only operation.",
       "performance_notes": "Fast and reliable fallback when larger models are unavailable or the USB is slow."
     },
     {
@@ -33,6 +37,8 @@
       "ram_guidance": "Recommended 8 GB unified memory or higher.",
       "disk_usage": "Approximately 300 MB in Ollama model storage.",
       "pull_command": "ollama pull nomic-embed-text",
+      "mac_m4_max_notes": "Small embedding model suitable for local document workflows.",
+      "nuc_linux_notes": "Appropriate for NUC document indexing when CPU resources are limited.",
       "performance_notes": "Small embedding model suitable for offline AnythingLLM document workflows."
     },
     {
@@ -41,6 +47,8 @@
       "ram_guidance": "Recommended 32 GB unified memory or higher; 48 GB+ preferred for multitasking.",
       "disk_usage": "Approximately 9 GB in Ollama model storage.",
       "pull_command": "ollama pull qwen2.5:14b",
+      "mac_m4_max_notes": "Good optional quality upgrade for M4 Max, especially with 32 GB+ unified memory.",
+      "nuc_linux_notes": "Use only on higher-memory NUCs. CPU-only latency may be high.",
       "performance_notes": "Stronger answers than 7B with slower load and response latency. Good M4 Max candidate."
     },
     {
@@ -49,6 +57,8 @@
       "ram_guidance": "Recommended 16 GB unified memory or higher.",
       "disk_usage": "Approximately 4.7 GB in Ollama model storage.",
       "pull_command": "ollama pull llama3.1:8b",
+      "mac_m4_max_notes": "Strong alternate default with broad ecosystem compatibility.",
+      "nuc_linux_notes": "Usable on 16 GB+ NUCs; prefer 3B fallback for constrained hosts.",
       "performance_notes": "Good alternate default when Qwen behavior is not desired."
     },
     {
@@ -57,6 +67,8 @@
       "ram_guidance": "Recommended 32 GB unified memory or higher; 48 GB+ preferred.",
       "disk_usage": "Approximately 9 GB in Ollama model storage.",
       "pull_command": "ollama pull deepseek-r1:14b",
+      "mac_m4_max_notes": "Optional reasoning model for high-memory M4 Max systems.",
+      "nuc_linux_notes": "Not recommended for low-power or CPU-only NUC operation unless latency is acceptable.",
       "performance_notes": "Reasoning workloads are slower but useful on M4 Max. Keep fallback model installed."
     }
   ]

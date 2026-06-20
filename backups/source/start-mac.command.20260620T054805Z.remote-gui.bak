@@ -21,36 +21,10 @@ INSTALLER_DIR="$USB_DIR/installer_data"
 DOCUMENTS_DIR="$USB_DIR/documents"
 RUNTIME_BACKUP_DIR="$USB_DIR/backups/runtime-cache"
 ENV_FILE="$STORAGE_DIR/storage/.env"
-PORTABLE_ENV="$USB_DIR/config/portable.env"
-ENV_EXAMPLE="$USB_DIR/config/portable.env.example"
+OLLAMA_HOST_URL="http://127.0.0.1:11434"
+ANYTHINGLLM_URL="${ANYTHINGLLM_URL:-http://127.0.0.1:3001}"
 
-if [ -f "$ENV_EXAMPLE" ]; then
-    # shellcheck disable=SC1090
-    . "$ENV_EXAMPLE"
-fi
-if [ -f "$PORTABLE_ENV" ]; then
-    # shellcheck disable=SC1090
-    . "$PORTABLE_ENV"
-fi
-
-ENABLE_REMOTE_ACCESS="${ENABLE_REMOTE_ACCESS:-true}"
-ENABLE_REMOTE_OLLAMA="${ENABLE_REMOTE_OLLAMA:-false}"
-ENABLE_AUTH="${ENABLE_AUTH:-true}"
-ENABLE_ANYTHINGLLM="${ENABLE_ANYTHINGLLM:-true}"
-ENABLE_OPENWEBUI="${ENABLE_OPENWEBUI:-true}"
-ANYTHINGLLM_PORT="${ANYTHINGLLM_PORT:-3001}"
-OPENWEBUI_PORT="${OPENWEBUI_PORT:-8080}"
-OLLAMA_PORT="${OLLAMA_PORT:-11434}"
-BIND_ADDRESS="${BIND_ADDRESS:-0.0.0.0}"
-LAN_ONLY="${LAN_ONLY:-true}"
-
-OLLAMA_BIND="127.0.0.1"
-[ "$ENABLE_REMOTE_OLLAMA" = "true" ] && OLLAMA_BIND="$BIND_ADDRESS"
-OLLAMA_HOST_URL="http://127.0.0.1:$OLLAMA_PORT"
-ANYTHINGLLM_URL="${ANYTHINGLLM_URL:-http://127.0.0.1:$ANYTHINGLLM_PORT}"
-OPENWEBUI_URL="${OPENWEBUI_URL:-http://127.0.0.1:$OPENWEBUI_PORT}"
-
-mkdir -p "$LOG_DIR" "$REPORT_DIR" "$INSTALLER_DIR" "$DOCUMENTS_DIR" "$RUNTIME_BACKUP_DIR" "$STORAGE_DIR/storage" "$DATA_DIR" "$USB_DIR/data/chroma" "$USB_DIR/data/anythingllm" "$USB_DIR/data/openwebui"
+mkdir -p "$LOG_DIR" "$REPORT_DIR" "$INSTALLER_DIR" "$DOCUMENTS_DIR" "$RUNTIME_BACKUP_DIR" "$STORAGE_DIR/storage" "$DATA_DIR"
 LOG_FILE="$LOG_DIR/start-mac-$(date -u +%Y%m%dT%H%M%SZ).log"
 
 log() {
@@ -66,58 +40,6 @@ fail() {
 
 command_exists() {
     command -v "$1" >/dev/null 2>&1
-}
-
-port_in_use() {
-    port="$1"
-    if command_exists lsof; then
-        lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
-    else
-        curl -fsS "http://127.0.0.1:$port" >/dev/null 2>&1
-    fi
-}
-
-print_urls() {
-    service="$1"
-    port="$2"
-    echo "$service:"
-    "$USB_DIR/scripts/get-lan-url.sh" "$port" | sed 's/^/  /'
-    echo ""
-}
-
-start_openwebui() {
-    [ "$ENABLE_OPENWEBUI" = "true" ] || {
-        log "Open WebUI disabled by config"
-        return 0
-    }
-
-    if port_in_use "$OPENWEBUI_PORT"; then
-        log "Open WebUI port $OPENWEBUI_PORT already in use; leaving existing service untouched"
-        return 0
-    fi
-
-    export DATA_DIR="$USB_DIR/data/openwebui"
-    export OLLAMA_BASE_URL="$OLLAMA_HOST_URL"
-    export HOST="$BIND_ADDRESS"
-    export PORT="$OPENWEBUI_PORT"
-    [ "$ENABLE_AUTH" = "true" ] && export WEBUI_AUTH="True"
-
-    if [ -n "${OPENWEBUI_BIN:-}" ] && [ -x "$OPENWEBUI_BIN" ]; then
-        log "Starting Open WebUI from OPENWEBUI_BIN"
-        "$OPENWEBUI_BIN" serve --host "$BIND_ADDRESS" --port "$OPENWEBUI_PORT" >>"$LOG_FILE" 2>&1 &
-        OPENWEBUI_PID=$!
-    elif command_exists open-webui; then
-        log "Starting Open WebUI from PATH"
-        open-webui serve --host "$BIND_ADDRESS" --port "$OPENWEBUI_PORT" >>"$LOG_FILE" 2>&1 &
-        OPENWEBUI_PID=$!
-    elif command_exists python3 && python3 -m open_webui --help >/dev/null 2>&1; then
-        log "Starting Open WebUI via python module"
-        python3 -m open_webui serve --host "$BIND_ADDRESS" --port "$OPENWEBUI_PORT" >>"$LOG_FILE" 2>&1 &
-        OPENWEBUI_PID=$!
-    else
-        log "WARN: Open WebUI not found. Install it on host or set OPENWEBUI_BIN in config/portable.env."
-        return 0
-    fi
 }
 
 wait_for_url() {
@@ -177,9 +99,6 @@ echo "    Launching Portable AI Engine for Mac..."
 echo "==================================================="
 log "Startup begin"
 log "USB root: $USB_DIR"
-log "Remote GUI access: $ENABLE_REMOTE_ACCESS"
-log "Remote Ollama API: $ENABLE_REMOTE_OLLAMA"
-log "GUI authentication required/configured: $ENABLE_AUTH"
 validate_usb_root
 
 if [ "$(uname -s)" = "Darwin" ]; then
@@ -294,7 +213,7 @@ if curl -fsS "$OLLAMA_HOST_URL/api/tags" >/dev/null 2>&1; then
     log "Ollama API already running"
 else
     log "Starting Ollama engine from: $OLLAMA_BIN"
-    OLLAMA_HOST="$OLLAMA_BIND:$OLLAMA_PORT" "$OLLAMA_BIN" serve >>"$LOG_FILE" 2>&1 &
+    OLLAMA_HOST="127.0.0.1:11434" "$OLLAMA_BIN" serve >>"$LOG_FILE" 2>&1 &
     OLLAMA_PID=$!
 fi
 
@@ -322,20 +241,13 @@ archive_path_if_present "$STORAGE_DIR/Code Cache"
 archive_path_if_present "$STORAGE_DIR/GPUCache"
 
 # -----------------------------------------------------------------
-# STEP 6: Launch GUI services
+# STEP 6: Launch AnythingLLM
 # -----------------------------------------------------------------
 APP_PATH="$USB_DIR/anythingllm_mac/AnythingLLM.app"
-[ "$ENABLE_ANYTHINGLLM" = "true" ] || log "AnythingLLM disabled by config"
-if [ "$ENABLE_ANYTHINGLLM" = "true" ]; then
-    [ -d "$APP_PATH" ] || fail "AnythingLLM.app not found at: $APP_PATH"
-    if port_in_use "$ANYTHINGLLM_PORT"; then
-        log "AnythingLLM port $ANYTHINGLLM_PORT already in use; opening app without stopping existing service"
-    fi
-    log "Opening AnythingLLM from USB"
-    open -a "$APP_PATH" --args --user-data-dir="$STORAGE_DIR" >>"$LOG_FILE" 2>&1 || fail "Could not launch AnythingLLM"
-fi
+[ -d "$APP_PATH" ] || fail "AnythingLLM.app not found at: $APP_PATH"
 
-start_openwebui
+log "Opening AnythingLLM from USB"
+open -a "$APP_PATH" --args --user-data-dir="$STORAGE_DIR" >>"$LOG_FILE" 2>&1 || fail "Could not launch AnythingLLM"
 
 if wait_for_url "$ANYTHINGLLM_URL" 20; then
     log "AnythingLLM web interface reachable: $ANYTHINGLLM_URL"
@@ -344,32 +256,11 @@ else
     log "WARN: AnythingLLM local web interface was not reachable at $ANYTHINGLLM_URL; desktop app may still be running"
 fi
 
-if wait_for_url "$OPENWEBUI_URL" 20; then
-    log "Open WebUI reachable: $OPENWEBUI_URL"
-    open "$OPENWEBUI_URL" >>"$LOG_FILE" 2>&1 || log "WARN: Browser launch failed for $OPENWEBUI_URL"
-else
-    log "WARN: Open WebUI not reachable at $OPENWEBUI_URL"
-fi
-
 echo ""
 echo "==================================================="
 echo "  SYSTEM ONLINE: Your AI is running from the USB!"
 echo "==================================================="
 echo ""
-echo "Portable AI USB running."
-echo ""
-print_urls "AnythingLLM" "$ANYTHINGLLM_PORT"
-print_urls "Open WebUI" "$OPENWEBUI_PORT"
-echo "Ollama:"
-echo "  Local:  http://localhost:$OLLAMA_PORT"
-if [ "$ENABLE_REMOTE_OLLAMA" = "true" ]; then
-    "$USB_DIR/scripts/get-lan-url.sh" "$OLLAMA_PORT" | sed 's/^/  /'
-else
-    echo "  Remote: disabled unless ENABLE_REMOTE_OLLAMA=true"
-fi
-echo ""
-echo "Authentication: $ENABLE_AUTH"
-echo "LAN only requested: $LAN_ONLY"
 echo "Log file: $LOG_FILE"
 echo "Keep this terminal open while you chat."
 echo "Press [ENTER] to shut down the AI safely."
@@ -381,9 +272,6 @@ log "Shutdown requested"
 killall AnythingLLM >>"$LOG_FILE" 2>&1 || true
 if [ -n "${OLLAMA_PID:-}" ]; then
     kill "$OLLAMA_PID" >>"$LOG_FILE" 2>&1 || true
-fi
-if [ -n "${OPENWEBUI_PID:-}" ]; then
-    kill "$OPENWEBUI_PID" >>"$LOG_FILE" 2>&1 || true
 fi
 log "AI shut down. You may safely eject the USB."
 echo "AI shut down. You may safely eject the USB."
