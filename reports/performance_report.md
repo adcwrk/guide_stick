@@ -1,6 +1,6 @@
 # Performance Report
 
-Generated: 2026-06-20T05:45:00Z
+Generated: 2026-06-20T05:55:00Z
 
 Target USB:
 
@@ -10,81 +10,112 @@ Target USB:
 - Filesystem: `exfat`
 - Mountpoint: `/mnt/usb`
 
-## Environment
+## Validation Environment
 
-Validation host:
+- Host used for this validation: Linux
+- Available memory observed: approximately 30 GiB total
+- Target runtime A: Apple MacBook Pro M4 Max with macOS and Metal-backed Ollama
+- Target runtime B: Intel NUC with Linux and USB mounted at `/mnt/usb`
 
-- OS observed by scripts: Linux
-- Available memory during validation: 30 GiB total, 29 GiB available
-- Target macOS hardware: Apple Silicon M4 Max
+The current host does not have Ollama, AnythingLLM, or Open WebUI installed, so service runtime performance is reported as blocked with clear warnings rather than guessed.
 
-The current validation host is not the target M4 Max Mac. Apple Silicon Metal performance must be measured again on the Mac after running `setup-mac.sh`.
+## USB Disk Utilization
 
-## Disk Utilization
+- USB total capacity: approximately 938 GB
+- Portable-AI-USB size after implementation and generated validation artifacts: approximately tens of MB, excluding future model downloads
+- Required persistent data folders:
+  - `data/chroma`
+  - `data/anythingllm`
+  - `data/openwebui`
+  - `ollama/data`
 
-- USB total capacity: 938 GB
-- USB available capacity after deployment: approximately 938 GB
-- Portable-AI-USB directory size after implementation and validation artifacts: approximately 42 MB
+## USB I/O
 
-## USB I/O Behavior
-
-Test command used a temporary 256 MB file inside `/mnt/usb/Portable-AI-USB`.
+Previous validation on this mount measured:
 
 | Metric | Result | Notes |
 |---|---:|---|
-| Sequential write | 25.3 MB/s | `dd` with `conv=fsync`; representative of sustained writes to this mount |
-| Sequential read | 5004.7 MB/s | Likely page-cache accelerated on the validation host; not a reliable cold-read number |
+| Sequential write | 25.3 MB/s | `dd` with fsync to USB |
+| Sequential read | Cache-influenced | Cold read could not be reliably measured without root cache control |
 
-The direct-I/O read/write attempt was rejected by the exFAT mount with `Invalid input`, so direct cold-read measurement was not available without remounting or root-level cache control.
+Expected impact:
+
+- Model downloads and backups are write-speed limited.
+- Running large models from USB may increase initial model load time.
+- ChromaDB/vector writes should be acceptable for moderate document ingestion but slower than internal SSD.
 
 ## Startup Time
 
-Not fully measurable in this environment because portable macOS Ollama and AnythingLLM binaries are not installed and the current host is not macOS.
+Not measured end-to-end because required services are not installed on this host.
 
-Expected measurement method on the target M4 Max:
+Measurement commands on NUC:
 
-1. Run `bash setup-mac.sh`.
-2. Run `./start-mac.command`.
-3. Measure elapsed time from launcher start to Ollama API readiness.
-4. Measure elapsed time from launcher start to AnythingLLM interface reachable.
+```bash
+time bash start-linux.sh
+```
+
+Measurement commands on macOS:
+
+```bash
+time ./start-mac.command
+```
 
 ## Model Load Time
 
-Not measured in this environment because Ollama is not installed and no models are currently pulled to the USB.
+Not measured because Ollama is not installed and models are not pulled in this validation environment.
 
-Recommended target measurements:
+Models to measure on target hardware:
 
 - `qwen2.5:7b`
 - `llama3.2:3b`
 - `nomic-embed-text`
-- Optional: `qwen2.5:14b`, `llama3.1:8b`, `deepseek-r1:14b`
+- Optional M4 Max: `qwen2.5:14b`, `llama3.1:8b`, `deepseek-r1:14b`
 
 ## Memory Consumption
 
-Runtime memory was not measured because Ollama and AnythingLLM were not running.
+Not measured at runtime because Ollama and GUI services were not running.
 
-The validation host had 30 GiB total memory and 29 GiB available before runtime startup. On an M4 Max system, unified memory pressure should be measured with Activity Monitor or:
+Recommended target checks:
+
+```bash
+ps aux | grep -E 'ollama|AnythingLLM|open-webui'
+```
+
+macOS:
 
 ```bash
 vm_stat
-ps aux | grep -E 'Ollama|ollama|AnythingLLM'
+```
+
+Linux:
+
+```bash
+free -h
 ```
 
 ## Response Latency
 
-Not measured in this environment because no model runtime was available.
+Not measured because no model runtime is available on this host.
 
-Recommended target test:
+Target test:
 
 ```bash
 time ollama run qwen2.5:7b "Respond with one short paragraph about local AI."
 ```
 
-Then repeat for `llama3.2:3b` and optional larger models.
+## LAN GUI Latency
 
-## Performance Conclusions
+Not measured because GUI services were not running. The Linux healthcheck successfully generated a LAN URL:
 
-- USB write speed is adequate for logs, configuration, document staging, and moderate AnythingLLM vector updates.
-- Large model pulls and backup archives will be limited by the observed write speed.
-- The measured read value is cache-influenced and should not be used for model load planning.
-- The M4 Max should run the recommended default and fallback models comfortably once the models are available in the USB-local Ollama store.
+```text
+http://10.20.20.167:8080
+```
+
+LAN latency should be measured from another device on the same network after Open WebUI or AnythingLLM is running.
+
+## Conclusions
+
+- USB validation and folder/write checks passed.
+- Generated backup and healthcheck workflows are lightweight.
+- Runtime performance must be measured on the actual M4 Max and NUC after installing or configuring Ollama, AnythingLLM, and Open WebUI.
+- Larger M4 Max models should be pulled only after the default and fallback models are validated.

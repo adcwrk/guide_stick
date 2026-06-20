@@ -1,0 +1,16 @@
+ID,Epic,Task,Phase,Priority,Status,Dependencies,Acceptance Criteria,Notes
+T001,Upstream Preservation,Document upstream workflows,Phase 1,P0,Complete,,Analysis report exists,Preserve original scripts
+T002,Apple Silicon,Add macOS setup script,Phase 2,P0,Complete,T001,setup-mac.sh exists and validates USB,Model pulls depend on Ollama availability
+T003,Apple Silicon,Improve macOS launcher,Phase 2,P0,Complete,T002,start-mac.command logs and prints URLs,Runtime must be tested on M4 Max
+T004,Linux NUC,Add NUC setup script,Phase 2,P0,Complete,T001,setup-linux.sh exists and detects Ollama,Does not install host packages
+T005,Linux NUC,Add NUC launcher,Phase 2,P0,Complete,T004,start-linux.sh validates USB and avoids killing services,Ports are checked before launch
+T006,AnythingLLM GUI,Preserve AnythingLLM startup,Phase 2,P0,In Progress,T001,Existing flow remains available,LAN server availability depends on selected runtime
+T007,Open WebUI GUI,Add Open WebUI detection,Phase 2,P1,Complete,T006,Launcher checks OPENWEBUI_BIN and PATH,Open WebUI must be installed on host or configured
+T008,Ollama Backend,Disable remote Ollama by default,Phase 2,P0,Complete,T002;T004,ENABLE_REMOTE_OLLAMA defaults false,No auth on Ollama API
+T009,ChromaDB Persistence,Create data/chroma path,Phase 2,P1,Complete,T012,Writable path exists and is backed up,No migrations implemented
+T010,Remote LAN Access,Print local and LAN URLs,Phase 2,P0,Complete,T005,scripts/get-lan-url.sh works,Firewall config remains host responsibility
+T011,User Authentication,Add env auth policy,Phase 2,P0,In Progress,T007,ENABLE_AUTH defaults true,GUI first-run setup still required
+T012,Backup Recovery,Add backup script,Phase 2,P0,Complete,,Backup archive created under backups,Generated archives ignored by git
+T013,Health Checks,Add Linux and macOS health checks,Phase 3,P0,Complete,T002;T005,Reports generated under reports,Services warn when not installed
+T014,Document Ingestion,Stage documents non-destructively,Phase 2,P1,Complete,T012,Source files preserved,GUI import remains manual
+T015,Future GUIDE,Reserve GUIDE path,Future,P2,Backlog,T010;T011,GUIDE documented but not built,Add data/guide and service metadata later
