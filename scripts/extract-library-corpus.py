@@ -117,9 +117,9 @@ def should_skip(path):
     return any(lowered.endswith(suffix) for suffix in SKIP_SUFFIXES)
 
 
-def corpus_id(root, path):
+def corpus_id(root, path, prefix=""):
     rel = path.relative_to(root).as_posix()
-    return hashlib.sha256(rel.encode("utf-8")).hexdigest()[:24]
+    return hashlib.sha256(f"{prefix}:{rel}".encode("utf-8")).hexdigest()[:24]
 
 
 def write_doc(output_dir, doc_id, text):
@@ -140,7 +140,7 @@ def iter_source_files(source):
                 yield path
 
 
-def extract_files(source, output, manifest_path, max_bytes, min_chars):
+def extract_files(source, output, manifest_path, max_bytes, min_chars, mode="w", id_prefix="library", url_prefix="/library"):
     stats = {
         "scanned": 0,
         "written": 0,
@@ -150,10 +150,10 @@ def extract_files(source, output, manifest_path, max_bytes, min_chars):
         "bytes_written": 0,
     }
     output.mkdir(parents=True, exist_ok=True)
-    with manifest_path.open("w", encoding="utf-8") as manifest:
+    with manifest_path.open(mode, encoding="utf-8") as manifest:
         for path in iter_source_files(source):
             stats["scanned"] += 1
-            doc_id = corpus_id(source, path)
+            doc_id = corpus_id(source, path, id_prefix)
             rel = path.relative_to(source).as_posix()
             try:
                 text, title = extract_text(path, max_bytes)
@@ -181,7 +181,7 @@ def extract_files(source, output, manifest_path, max_bytes, min_chars):
                 "source_type": path.suffix.lower().lstrip(".") or "text",
                 "source_path": str(path),
                 "library_path": rel,
-                "library_url": f"/library/{rel}",
+                "library_url": f"{url_prefix.rstrip('/')}/{rel}" if url_prefix else "",
                 "corpus_path": str(target),
                 "title": title or path.stem.replace("_", " ").replace("-", " "),
                 "chars": len(text),
@@ -200,19 +200,32 @@ def zim_files(source):
     return sorted(path for path in zim_root.glob("*.zim") if path.is_file())
 
 
-def zim_inventory(source, include_zims, zim_limit):
+def find_zimdump(root):
+    local = root / "tools" / "zim-tools" / "zimdump"
+    if local.exists() and os.access(local, os.X_OK):
+        return str(local)
+    return shutil.which("zimdump")
+
+
+def zim_inventory(root, source, include_zims, zim_limit, zim_max_bytes):
     zims = zim_files(source)
     if zim_limit:
         zims = zims[:zim_limit]
-    zimdump = shutil.which("zimdump")
+    zimdump = find_zimdump(root)
     records = []
     for zim in zims:
+        size = zim.stat().st_size
+        too_large = bool(zim_max_bytes and size > zim_max_bytes)
         records.append({
             "name": zim.name,
             "path": str(zim),
-            "size": zim.stat().st_size,
-            "status": "pending" if include_zims and zimdump else "deferred",
-            "reason": None if include_zims and zimdump else "zimdump is not installed on this host",
+            "size": size,
+            "status": "pending" if include_zims and zimdump and not too_large else "deferred",
+            "reason": (
+                None if include_zims and zimdump and not too_large
+                else "zimdump is not installed on this host" if not zimdump
+                else f"larger than ZIM_MAX_BYTES={zim_max_bytes}"
+            ),
         })
     partials = []
     zim_root = source / "zims" / "content"
@@ -223,8 +236,8 @@ def zim_inventory(source, include_zims, zim_limit):
     return records, partials, zimdump
 
 
-def extract_zims(source, output, include_zims, zim_limit):
-    records, partials, zimdump = zim_inventory(source, include_zims, zim_limit)
+def extract_zims(root, source, output, include_zims, zim_limit, zim_max_bytes):
+    records, partials, zimdump = zim_inventory(root, source, include_zims, zim_limit, zim_max_bytes)
     if not include_zims or not zimdump:
         return {"tool": zimdump, "records": records, "partials": partials, "extracted": 0, "failed": 0}
 
@@ -233,6 +246,8 @@ def extract_zims(source, output, include_zims, zim_limit):
     extracted = 0
     failed = 0
     for record in records:
+        if record["status"] == "deferred":
+            continue
         zim_path = Path(record["path"])
         target = raw_root / zim_path.stem
         marker = target / ".guide-zimdump-complete"
@@ -261,7 +276,9 @@ def write_json(path, data):
 
 
 def write_report(path, source, output, file_stats, zim_stats):
-    completed_with_warnings = bool(zim_stats["records"]) and not zim_stats["tool"]
+    completed_with_warnings = bool(zim_stats["records"]) and (
+        not zim_stats["tool"] or any(record.get("status") in {"deferred", "failed"} for record in zim_stats["records"])
+    )
     status = "Complete with Warnings" if completed_with_warnings else "Complete"
     lines = [
         "# RAG Corpus Extraction Report",
@@ -304,6 +321,12 @@ def write_report(path, source, output, file_stats, zim_stats):
             "```",
             "",
         ])
+    elif any(record.get("status") == "deferred" for record in zim_stats["records"]):
+        lines.extend([
+            "Some ZIM files were deferred by the configured safety limits.",
+            "Increase `ZIM_MAX_BYTES` or set `ZIM_LIMIT` for a deliberate long-running native ZIM extraction pass.",
+            "",
+        ])
     lines.extend([
         "## Outputs",
         "",
@@ -321,6 +344,7 @@ def main():
     parser.add_argument("--output", default=str(root / "data" / "rag" / "corpus"))
     parser.add_argument("--include-zims", action="store_true", default=os.environ.get("INCLUDE_ZIMS") == "true")
     parser.add_argument("--zim-limit", type=int, default=int(os.environ.get("ZIM_LIMIT", "0")))
+    parser.add_argument("--zim-max-bytes", type=int, default=int(os.environ.get("ZIM_MAX_BYTES", str(1024 * 1024 * 1024))))
     parser.add_argument("--max-file-bytes", type=int, default=int(os.environ.get("MAX_FILE_BYTES", str(20 * 1024 * 1024))))
     parser.add_argument("--min-chars", type=int, default=int(os.environ.get("MIN_CORPUS_CHARS", "80")))
     args = parser.parse_args()
@@ -333,8 +357,22 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     manifest_path = output / "manifest.jsonl"
 
-    zim_stats = extract_zims(source, output, args.include_zims, args.zim_limit)
+    zim_stats = extract_zims(root, source, output, args.include_zims, args.zim_limit, args.zim_max_bytes)
     file_stats = extract_files(source, output, manifest_path, args.max_file_bytes, args.min_chars)
+    zim_raw = output / "zim_raw"
+    if args.include_zims and zim_raw.exists():
+        raw_stats = extract_files(
+            zim_raw,
+            output,
+            manifest_path,
+            args.max_file_bytes,
+            args.min_chars,
+            mode="a",
+            id_prefix="zim",
+            url_prefix="",
+        )
+        for key in ("scanned", "written", "skipped_short", "skipped_large", "failed", "bytes_written"):
+            file_stats[key] += raw_stats[key]
 
     summary = {
         "generated_at": utc_now(),
@@ -343,7 +381,11 @@ def main():
         "manifest_path": str(manifest_path),
         "file_extraction": file_stats,
         "zim_extraction": zim_stats,
-        "status": "complete_with_warnings" if zim_stats["records"] and not zim_stats["tool"] else "complete",
+        "status": "complete_with_warnings" if (
+            zim_stats["records"] and (
+                not zim_stats["tool"] or any(record.get("status") in {"deferred", "failed"} for record in zim_stats["records"])
+            )
+        ) else "complete",
     }
     write_json(output / "library_manifest.json", summary)
     write_report(root / "reports" / "rag_corpus_extraction_report.md", source, output, file_stats, zim_stats)

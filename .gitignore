@@ -17,6 +17,12 @@ data/chroma/*
 !data/chroma/.gitkeep
 data/rag/corpus/*
 !data/rag/corpus/.gitkeep
+data/rag/python-packages/
+data/chroma/library/
+tools/uv/
+tools/python/
+tools/zim-tools/
+downloads/
 
 # Large model binaries and Ollama blobs
 models/*.gguf

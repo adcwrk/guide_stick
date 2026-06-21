@@ -70,17 +70,21 @@ else
   record FAIL "USB identity" "see $LOG_FILE"
 fi
 
-for dir in config documents logs backups reports data/chroma data/anythingllm data/openwebui scripts ollama; do
+for dir in config documents logs backups reports data/chroma data/rag/corpus data/anythingllm data/openwebui scripts ollama; do
   [ -d "$USB_DIR/$dir" ] && record PASS "Required folder: $dir" "present" || record FAIL "Required folder: $dir" "missing"
 done
 
-for script in start-linux.sh setup-linux.sh scripts/detect-usb.sh scripts/get-lan-url.sh scripts/backup-portable.sh scripts/ingest-documents.sh scripts/install-anythingllm-linux.sh; do
+for script in start-linux.sh setup-linux.sh scripts/detect-usb.sh scripts/get-lan-url.sh scripts/backup-portable.sh scripts/ingest-documents.sh scripts/install-anythingllm-linux.sh scripts/extract-library-corpus.sh scripts/build-rag-index.sh; do
   [ -x "$USB_DIR/$script" ] && record PASS "Executable: $script" "yes" || record WARN "Executable: $script" "not executable; run with bash if exFAT clears mode bits"
 done
 
 touch "$USB_DIR/logs/.healthcheck_write" 2>/dev/null && rm -f "$USB_DIR/logs/.healthcheck_write" && record PASS "Logs writable" "$USB_DIR/logs" || record FAIL "Logs writable" "$USB_DIR/logs"
 touch "$USB_DIR/documents/.healthcheck_write" 2>/dev/null && rm -f "$USB_DIR/documents/.healthcheck_write" && record PASS "Documents writable" "$USB_DIR/documents" || record FAIL "Documents writable" "$USB_DIR/documents"
 touch "$USB_DIR/data/chroma/.healthcheck_write" 2>/dev/null && rm -f "$USB_DIR/data/chroma/.healthcheck_write" && record PASS "ChromaDB path writable" "$USB_DIR/data/chroma" || record FAIL "ChromaDB path writable" "$USB_DIR/data/chroma"
+
+[ -s "$USB_DIR/data/rag/corpus/manifest.jsonl" ] && record PASS "RAG corpus manifest" "$(wc -l < "$USB_DIR/data/rag/corpus/manifest.jsonl") rows" || record WARN "RAG corpus manifest" "missing or empty"
+[ -s "$USB_DIR/data/chroma/library/indexed_ids.txt" ] && record PASS "RAG Chroma index" "$(wc -l < "$USB_DIR/data/chroma/library/indexed_ids.txt") indexed chunks" || record WARN "RAG Chroma index" "not started"
+[ -x "$USB_DIR/tools/zim-tools/zimdump" ] && record PASS "zimdump installed" "$("$USB_DIR/tools/zim-tools/zimdump" --version | head -n 1)" || record WARN "zimdump installed" "not found under tools/zim-tools"
 
 if curl -fsS "http://127.0.0.1:$OLLAMA_PORT/api/tags" >/dev/null 2>&1; then
   record PASS "Ollama reachable" "http://127.0.0.1:$OLLAMA_PORT/api/tags"

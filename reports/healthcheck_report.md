@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-21T08:05:41Z
+Generated: 2026-06-21T17:13:05Z
 
 Runtime: Linux/NUC
 
@@ -8,7 +8,7 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 29
+- Passed: 35
 - Warnings: 1
 - Failed: 0
 
@@ -21,6 +21,7 @@ Summary:
 | PASS | Required folder: backups | present |
 | PASS | Required folder: reports | present |
 | PASS | Required folder: data/chroma | present |
+| PASS | Required folder: data/rag/corpus | present |
 | PASS | Required folder: data/anythingllm | present |
 | PASS | Required folder: data/openwebui | present |
 | PASS | Required folder: scripts | present |
@@ -32,9 +33,14 @@ Summary:
 | PASS | Executable: scripts/backup-portable.sh | yes |
 | PASS | Executable: scripts/ingest-documents.sh | yes |
 | PASS | Executable: scripts/install-anythingllm-linux.sh | yes |
+| PASS | Executable: scripts/extract-library-corpus.sh | yes |
+| PASS | Executable: scripts/build-rag-index.sh | yes |
 | PASS | Logs writable | /mnt/usb/GUIDE/logs |
 | PASS | Documents writable | /mnt/usb/GUIDE/documents |
 | PASS | ChromaDB path writable | /mnt/usb/GUIDE/data/chroma |
+| PASS | RAG corpus manifest | 56136 rows |
+| PASS | RAG Chroma index | 256 indexed chunks |
+| PASS | zimdump installed | zim-tools 3.7.0 |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
 | PASS | Ollama installed | /mnt/usb/GUIDE/ollama/ollama |
 | PASS | Model: qwen2.5:7b | available |
@@ -46,4 +52,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260621T080541Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260621T171305Z.log`
