@@ -29,6 +29,8 @@ GUIDE is now defined as Generative Unified Intelligence for Disaster and Emergen
 
 Future GUIDE work should:
 
+### Milestone M1: Library RAG
+
 - Add GUIDE to `config/services.json`.
 - Store GUIDE state under `data/guide`.
 - Reuse LAN URL and USB detection helpers.
@@ -40,8 +42,14 @@ Future GUIDE work should:
 - Store library vector indexes under `data/chroma/library`.
 - Add Ask Library mode with citations to local `/library/...` URLs.
 - Keep future GUIDE integration compatible with later GUIDE service/runtime additions.
+
+### Milestone M2: Preparedness Core
+
 - Add household intake and preparedness profiles.
 - Add inventory management and preparedness gap analysis.
+
+### Milestone M3: Operations
+
 - Add incident management with timelines, resources, and recommendations.
 - Add communications planning with a future Meshtastic integration path.
 - Add maps and situational awareness for hazards, resources, shelters, hospitals, communications infrastructure, and evacuation routes.

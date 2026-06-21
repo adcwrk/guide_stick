@@ -161,9 +161,9 @@
 - Description: Expose copied Internet-in-a-Box library content from `/mnt/usb/GUIDE/library/iiab` through the GUIDE WebUI with searchable sections and stable local links.
 - Priority: P0
 - Phase: Future
-- Status: In Progress
+- Status: Complete with Warnings
 - Dependencies: E08-B01, E14-B01
-- Acceptance criteria: WebUI shows Library section; `/api/library` reports copied content; files are browsable under `/library/`; deferred maps/ZIM status is visible.
+- Acceptance criteria: WebUI shows Library section; `/api/library` reports copied content; files are browsable under `/library/`; deferred maps/ZIM status is visible. Current warning: full search/filter UI remains future enhancement.
 
 - ID: E15-B02
 - Title: ZIM and HTML extraction pipeline
@@ -171,7 +171,7 @@
 - Priority: P0
 - Phase: Future
 - Status: Backlog
-- Dependencies: E15-B01, E11-B01
+- Dependencies: E15-B01, E15-B05, E11-B01
 - Acceptance criteria: `scripts/extract-zim-content.sh` and/or equivalent extractor produces chunkable text under `data/rag/corpus`; originals are never modified or deleted.
 
 - ID: E15-B03
@@ -180,7 +180,7 @@
 - Priority: P0
 - Phase: Future
 - Status: Backlog
-- Dependencies: E07-B01, E15-B02, E06-B01
+- Dependencies: E07-B01, E15-B02, E15-B06, E06-B01
 - Acceptance criteria: `scripts/build-rag-index.sh` creates a resumable vector index; index metadata is written to `data/rag/library_manifest.json`; backups include index metadata.
 
 - ID: E15-B06
@@ -198,7 +198,7 @@
 - Priority: P0
 - Phase: Future
 - Status: Backlog
-- Dependencies: E15-B03, E06-B01, E09-B01
+- Dependencies: E15-B07, E15-B03, E06-B01, E09-B01
 - Acceptance criteria: WebUI can answer questions from imported library content; responses include source titles and `/library/...` links; chat still works when RAG index is unavailable.
 
 - ID: E15-B07
@@ -215,9 +215,9 @@
 - Description: Finish copying large ZIM payloads and optional map databases from the SD/eMMC source into USB storage using resumable import jobs.
 - Priority: P1
 - Phase: Future
-- Status: In Progress
+- Status: Complete with Warnings
 - Dependencies: E15-B01
-- Acceptance criteria: ZIM copy completes or report identifies deferred files; `reports/iiab_library_import_report.md` is updated; WebUI library status reflects complete and partial ZIM files.
+- Acceptance criteria: ZIM copy completes or report identifies deferred files; `reports/iiab_library_import_report.md` is updated; WebUI library status reflects complete and partial ZIM files. Current status: selected ZIM payload copied; rsync warning code 23 was caused by protected service/runtime files outside the selected ZIM payload.
 
 ## Epic E16: GUIDE Preparedness and Operations Platform
 
@@ -226,7 +226,7 @@
 - Description: Preserve GUIDE as Generative Unified Intelligence for Disaster and Emergency Management, an offline-first preparedness and operational decision-support platform.
 - Priority: P0
 - Phase: Future
-- Status: In Progress
+- Status: Complete
 - Dependencies: E14-B01
 - Acceptance criteria: Product vision exists in `reports/guide_product_vision.md`; roadmap and implementation tasks align to preparedness, response, trusted knowledge, and operational decision support.
 
