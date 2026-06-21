@@ -12,7 +12,7 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 2 | T016 Library UI | Complete with Warnings | Establishes local library access and source URLs; full search remains future enhancement. |
 | 3 | T017 ZIM import | Complete with Warnings | Provides the trusted offline source corpus. |
 | 4 | T028 Pull `nomic-embed-text` | Complete | Required to generate embeddings offline. |
-| 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; native ZIM article extraction is wired for `zimdump` but deferred on this host because `zimdump` is not installed. |
+| 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; USB-local `zimdump` is installed, and native ZIM article extraction is deferred as a targeted size-guarded job. |
 | 6 | T019 Build ChromaDB library index | In Progress | ChromaDB runtime is installed and `guide_library` contains an initial 256 indexed chunks; full corpus indexing is resumable. |
 | 7 | T029 Add RAG orchestration endpoint | Backlog | Connects retrieval, prompt construction, and Ollama answer generation. |
 | 8 | T020 Add Ask Library UI | Backlog | Exposes source-grounded RAG to users. |
