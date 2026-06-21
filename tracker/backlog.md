@@ -188,7 +188,7 @@
 - Description: Pull and validate `nomic-embed-text` in the USB-local Ollama model store so GUIDE can generate embeddings without internet access.
 - Priority: P0
 - Phase: Future
-- Status: Backlog
+- Status: Complete
 - Dependencies: E06-B01, E15-B02
 - Acceptance criteria: `nomic-embed-text` appears in `ollama list`; health checks mark embedding model available; model data is stored under `/mnt/usb/GUIDE/ollama/data`.
 

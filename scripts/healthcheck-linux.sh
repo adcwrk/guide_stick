@@ -25,6 +25,8 @@ ANYTHINGLLM_PORT="${ANYTHINGLLM_PORT:-3001}"
 OPENWEBUI_PORT="${OPENWEBUI_PORT:-8080}"
 OLLAMA_PORT="${OLLAMA_PORT:-11434}"
 ENABLE_OPENWEBUI="${ENABLE_OPENWEBUI:-true}"
+OLLAMA_MODELS="${OLLAMA_MODELS:-$USB_DIR/ollama/data}"
+export OLLAMA_MODELS
 
 PASS=0
 WARN=0
@@ -87,8 +89,13 @@ fi
 
 if bin="$(ollama_bin)"; then
   record PASS "Ollama installed" "$bin"
+  model_list="$("$bin" list 2>/dev/null | awk 'NR > 1 {print $1}')"
   for model in qwen2.5:7b llama3.2:3b nomic-embed-text; do
-    "$bin" list 2>/dev/null | awk '{print $1}' | grep -qx "$model" && record PASS "Model: $model" "available" || record WARN "Model: $model" "missing"
+    if printf '%s\n' "$model_list" | grep -Eqx "$model|$model:latest"; then
+      record PASS "Model: $model" "available"
+    else
+      record WARN "Model: $model" "missing"
+    fi
   done
 else
   record WARN "Ollama installed" "not detected"

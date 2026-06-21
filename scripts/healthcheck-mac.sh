@@ -11,6 +11,8 @@ LOG_FILE="$LOG_DIR/healthcheck-mac-$(date -u +%Y%m%dT%H%M%SZ).log"
 OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
 ANYTHINGLLM_URL="${ANYTHINGLLM_URL:-http://127.0.0.1:3001}"
 OPENWEBUI_URL="${OPENWEBUI_URL:-http://127.0.0.1:8080}"
+OLLAMA_MODELS="${OLLAMA_MODELS:-$USB_DIR/ollama/data}"
+export OLLAMA_MODELS
 
 mkdir -p "$REPORT_DIR" "$LOG_DIR"
 
@@ -69,8 +71,9 @@ fi
 
 if bin="$(ollama_bin)"; then
   record PASS "Ollama installed" "$bin"
+  model_list="$("$bin" list 2>/dev/null | awk 'NR > 1 {print $1}')"
   for model in qwen2.5:7b llama3.2:3b nomic-embed-text; do
-    if "$bin" list 2>/dev/null | awk '{print $1}' | grep -qx "$model"; then
+    if printf '%s\n' "$model_list" | grep -Eqx "$model|$model:latest"; then
       record PASS "Model installed: $model" "available"
     else
       record WARN "Model installed: $model" "not found in ollama list"

@@ -38,8 +38,8 @@ The agent should produce:
 
 As of this tracker version:
 
-1. T028 is the first incomplete critical-path task.
-2. After T028, proceed to T018.
+1. T028 is complete.
+2. T018 is the first incomplete critical-path task.
 3. After T018, proceed to T019.
 4. After T019, proceed to T029.
 5. After T029, proceed to T020.

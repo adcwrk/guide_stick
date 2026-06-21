@@ -11,7 +11,7 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 1 | T008 Ollama backend | Complete | Required model runtime for chat and embeddings. |
 | 2 | T016 Library UI | Complete with Warnings | Establishes local library access and source URLs; full search remains future enhancement. |
 | 3 | T017 ZIM import | Complete with Warnings | Provides the trusted offline source corpus. |
-| 4 | T028 Pull `nomic-embed-text` | Backlog | Required to generate embeddings offline. |
+| 4 | T028 Pull `nomic-embed-text` | Complete | Required to generate embeddings offline. |
 | 5 | T018 Extract ZIM and HTML text | Backlog | Converts `.zim` and static content into chunkable text. |
 | 6 | T019 Build ChromaDB library index | Backlog | Creates retrievable vectors under USB-local storage. |
 | 7 | T029 Add RAG orchestration endpoint | Backlog | Connects retrieval, prompt construction, and Ollama answer generation. |
@@ -30,9 +30,9 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T028: Pull and validate `nomic-embed-text`.
+T018: Extract ZIM and HTML text.
 
-Reason: It is the first incomplete task on the critical path and unlocks the embedding/indexing work.
+Reason: T028 is complete, and T018 is now the first incomplete task on the critical path. It converts the imported library into chunkable text for ChromaDB indexing.
 
 ## Parallel Work That Does Not Block RAG
 
