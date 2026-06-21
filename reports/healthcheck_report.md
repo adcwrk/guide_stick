@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-21T06:00:43Z
+Generated: 2026-06-21T08:05:41Z
 
 Runtime: Linux/NUC
 
@@ -8,8 +8,8 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 26
-- Warnings: 2
+- Passed: 29
+- Warnings: 1
 - Failed: 0
 
 | Status | Check | Detail |
@@ -31,17 +31,19 @@ Summary:
 | PASS | Executable: scripts/get-lan-url.sh | yes |
 | PASS | Executable: scripts/backup-portable.sh | yes |
 | PASS | Executable: scripts/ingest-documents.sh | yes |
+| PASS | Executable: scripts/install-anythingllm-linux.sh | yes |
 | PASS | Logs writable | /mnt/usb/GUIDE/logs |
 | PASS | Documents writable | /mnt/usb/GUIDE/documents |
 | PASS | ChromaDB path writable | /mnt/usb/GUIDE/data/chroma |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
 | PASS | Ollama installed | /mnt/usb/GUIDE/ollama/ollama |
-| WARN | Model: qwen2.5:7b | missing |
+| PASS | Model: qwen2.5:7b | available |
 | PASS | Model: llama3.2:3b | available |
 | PASS | Model: nomic-embed-text | available |
 | WARN | AnythingLLM reachable | not reachable on port 3001 |
+| PASS | AnythingLLM AppImage runtime | installed on USB |
 | PASS | Open WebUI reachable | port 8080 |
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260621T060042Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260621T080541Z.log`

@@ -26,6 +26,8 @@ ENABLE_REMOTE_OLLAMA="${ENABLE_REMOTE_OLLAMA:-false}"
 ENABLE_AUTH="${ENABLE_AUTH:-true}"
 ENABLE_ANYTHINGLLM="${ENABLE_ANYTHINGLLM:-true}"
 ENABLE_OPENWEBUI="${ENABLE_OPENWEBUI:-true}"
+ANYTHINGLLM_RUNTIME="${ANYTHINGLLM_RUNTIME:-auto}"
+ANYTHINGLLM_IMAGE="${ANYTHINGLLM_IMAGE:-mintplexlabs/anythingllm:latest}"
 ANYTHINGLLM_PORT="${ANYTHINGLLM_PORT:-3001}"
 OPENWEBUI_PORT="${OPENWEBUI_PORT:-8080}"
 OLLAMA_PORT="${OLLAMA_PORT:-11434}"
@@ -114,28 +116,69 @@ start_anythingllm() {
     return 0
   }
   export STORAGE_DIR="$DATA_ROOT/anythingllm"
+  export ANYTHINGLLM_STORAGE_DIR="$USB_DIR/anythingllm_data/storage"
   export APPDATA="$DATA_ROOT/anythingllm"
   export LOCALAPPDATA="$DATA_ROOT/anythingllm"
   export XDG_CONFIG_HOME="$DATA_ROOT/anythingllm/config"
   export XDG_DATA_HOME="$DATA_ROOT/anythingllm/data"
   export XDG_CACHE_HOME="$DATA_ROOT/anythingllm/cache"
-  mkdir -p "$STORAGE_DIR" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
+  mkdir -p "$STORAGE_DIR" "$ANYTHINGLLM_STORAGE_DIR" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
 
   if port_in_use "$ANYTHINGLLM_PORT"; then
     log "AnythingLLM port $ANYTHINGLLM_PORT already in use; not starting another instance"
     return 0
   fi
 
+  runtime="$ANYTHINGLLM_RUNTIME"
+  if [ "$runtime" = "auto" ]; then
+    if have docker; then
+      runtime="docker"
+    elif [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+      runtime="appimage"
+    else
+      runtime="none"
+    fi
+  fi
+
+  if [ "$runtime" = "disabled" ]; then
+    log "AnythingLLM runtime disabled"
+    return 0
+  fi
+
+  if [ "$runtime" = "docker" ]; then
+    if ! have docker; then
+      log "WARN: AnythingLLM Docker runtime requested but docker is not installed."
+      return 0
+    fi
+    log "Starting AnythingLLM Docker server on $BIND_ADDRESS:$ANYTHINGLLM_PORT"
+    docker run --rm \
+      --name guide-anythingllm \
+      -p "$BIND_ADDRESS:$ANYTHINGLLM_PORT:3001" \
+      -e STORAGE_DIR=/app/server/storage \
+      -e UID="$(id -u)" \
+      -e GID="$(id -g)" \
+      -v "$ANYTHINGLLM_STORAGE_DIR:/app/server/storage" \
+      "$ANYTHINGLLM_IMAGE" >>"$LOG_FILE" 2>&1 &
+    ANYTHINGLLM_PID=$!
+    wait_for_url "http://127.0.0.1:$ANYTHINGLLM_PORT" 90 || log "WARN: AnythingLLM Docker server did not become reachable on port $ANYTHINGLLM_PORT"
+    return 0
+  fi
+
   app="${ANYTHINGLLM_BIN:-}"
+  [ -z "$app" ] && [ -f "$USB_DIR/anythingllm/AnythingLLMDesktop.AppImage" ] && app="$USB_DIR/anythingllm/AnythingLLMDesktop.AppImage"
   [ -z "$app" ] && [ -f "$USB_DIR/anythingllm/AnythingLLM.AppImage" ] && app="$USB_DIR/anythingllm/AnythingLLM.AppImage"
 
-  if [ -n "$app" ] && [ -f "$app" ]; then
+  if [ "$runtime" = "appimage" ] && [ -n "$app" ] && [ -f "$app" ]; then
     chmod +x "$app" 2>/dev/null || true
     log "Starting AnythingLLM AppImage"
     "$app" --user-data-dir="$STORAGE_DIR/anythingllm-desktop" --no-sandbox >>"$LOG_FILE" 2>&1 &
     ANYTHINGLLM_PID=$!
+  elif [ "$runtime" = "appimage" ]; then
+    log "WARN: AnythingLLM AppImage not found. Run scripts/install-anythingllm-linux.sh or set ANYTHINGLLM_BIN."
+  elif [ "$runtime" = "none" ]; then
+    log "WARN: AnythingLLM cannot start on this host: docker is missing and no graphical display is available."
   else
-    log "WARN: AnythingLLM AppImage not found. Existing services are left untouched."
+    log "WARN: Unknown AnythingLLM runtime '$runtime'. Use auto, docker, appimage, or disabled."
   fi
 }
 

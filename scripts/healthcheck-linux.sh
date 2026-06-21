@@ -25,6 +25,7 @@ ANYTHINGLLM_PORT="${ANYTHINGLLM_PORT:-3001}"
 OPENWEBUI_PORT="${OPENWEBUI_PORT:-8080}"
 OLLAMA_PORT="${OLLAMA_PORT:-11434}"
 ENABLE_OPENWEBUI="${ENABLE_OPENWEBUI:-true}"
+ANYTHINGLLM_RUNTIME="${ANYTHINGLLM_RUNTIME:-auto}"
 OLLAMA_MODELS="${OLLAMA_MODELS:-$USB_DIR/ollama/data}"
 export OLLAMA_MODELS
 
@@ -73,7 +74,7 @@ for dir in config documents logs backups reports data/chroma data/anythingllm da
   [ -d "$USB_DIR/$dir" ] && record PASS "Required folder: $dir" "present" || record FAIL "Required folder: $dir" "missing"
 done
 
-for script in start-linux.sh setup-linux.sh scripts/detect-usb.sh scripts/get-lan-url.sh scripts/backup-portable.sh scripts/ingest-documents.sh; do
+for script in start-linux.sh setup-linux.sh scripts/detect-usb.sh scripts/get-lan-url.sh scripts/backup-portable.sh scripts/ingest-documents.sh scripts/install-anythingllm-linux.sh; do
   [ -x "$USB_DIR/$script" ] && record PASS "Executable: $script" "yes" || record WARN "Executable: $script" "not executable; run with bash if exFAT clears mode bits"
 done
 
@@ -102,6 +103,13 @@ else
 fi
 
 curl -fsS "http://127.0.0.1:$ANYTHINGLLM_PORT" >/dev/null 2>&1 && record PASS "AnythingLLM reachable" "port $ANYTHINGLLM_PORT" || record WARN "AnythingLLM reachable" "not reachable on port $ANYTHINGLLM_PORT"
+if command -v docker >/dev/null 2>&1; then
+  record PASS "AnythingLLM Docker runtime" "$(command -v docker)"
+elif [ -f "$USB_DIR/anythingllm/AnythingLLMDesktop.AppImage" ] || [ -f "$USB_DIR/anythingllm/AnythingLLM.AppImage" ]; then
+  record PASS "AnythingLLM AppImage runtime" "installed on USB"
+else
+  record WARN "AnythingLLM runtime" "docker missing and AppImage not installed; run scripts/install-anythingllm-linux.sh"
+fi
 
 if [ "$ENABLE_OPENWEBUI" = "true" ]; then
   curl -fsS "http://127.0.0.1:$OPENWEBUI_PORT" >/dev/null 2>&1 && record PASS "Open WebUI reachable" "port $OPENWEBUI_PORT" || record WARN "Open WebUI reachable" "not reachable on port $OPENWEBUI_PORT"

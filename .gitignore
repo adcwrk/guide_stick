@@ -7,6 +7,8 @@ ollama/bin/
 ollama/lib/
 ollama_mac/
 anythingllm_mac/
+anythingllm/*.AppImage
+anythingllm/*.partial
 data/anythingllm/*
 !data/anythingllm/.gitkeep
 data/openwebui/*
