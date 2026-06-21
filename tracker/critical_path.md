@@ -12,7 +12,7 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 2 | T016 Library UI | Complete with Warnings | Establishes local library access and source URLs; full search remains future enhancement. |
 | 3 | T017 ZIM import | Complete with Warnings | Provides the trusted offline source corpus. |
 | 4 | T028 Pull `nomic-embed-text` | Complete | Required to generate embeddings offline. |
-| 5 | T018 Extract ZIM and HTML text | Backlog | Converts `.zim` and static content into chunkable text. |
+| 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; native ZIM article extraction is wired for `zimdump` but deferred on this host because `zimdump` is not installed. |
 | 6 | T019 Build ChromaDB library index | Backlog | Creates retrievable vectors under USB-local storage. |
 | 7 | T029 Add RAG orchestration endpoint | Backlog | Connects retrieval, prompt construction, and Ollama answer generation. |
 | 8 | T020 Add Ask Library UI | Backlog | Exposes source-grounded RAG to users. |
@@ -30,9 +30,9 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T018: Extract ZIM and HTML text.
+T019: Build ChromaDB library index.
 
-Reason: T028 is complete, and T018 is now the first incomplete task on the critical path. It converts the imported library into chunkable text for ChromaDB indexing.
+Reason: T018 generated the corpus and manifest under `data/rag/corpus`. T019 is now the first incomplete task on the critical path and will turn that corpus into a resumable ChromaDB index under `data/chroma/library`.
 
 ## Parallel Work That Does Not Block RAG
 
@@ -46,4 +46,5 @@ Reason: T028 is complete, and T018 is now the first incomplete task on the criti
 ## Deferred or Warning Items
 
 - T017 is complete with warnings because the selected ZIM payload copied successfully, but rsync returned code 23 due to protected Matomo/Nextcloud/service runtime files outside the selected ZIM payload.
+- T018 is complete with warnings because 56,136 HTML/text corpus documents were generated with zero extraction failures, but native ZIM article extraction requires `zimdump`, which is not installed on this host.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.
