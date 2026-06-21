@@ -26,3 +26,5 @@ T024,Inventory Management,Add preparedness inventory and gap calculations,Future
 T025,Incident Management,Add incident records and operational timeline,Future,P1,Backlog,T020;T023,Incidents track status resources documentation and recommendations,Support wildfire flood outage medical SAR comms failures
 T026,Communications Center,Add communications planning path,Future,P1,Backlog,T025,Message templates logs and future Meshtastic path documented,Do not require internet
 T027,Situational Awareness,Add offline map and resource context path,Future,P1,Backlog,T017;T025,Hazards resources shelters hospitals routes and comms infrastructure can be represented,Depends on map import strategy
+T028,RAG Embeddings,Pull and validate nomic-embed-text,Future,P0,Backlog,T008,nomic-embed-text appears in ollama list and healthcheck passes,Store model under USB Ollama data path
+T029,RAG Orchestration,Add Ollama retrieval orchestration endpoint,Future,P0,Backlog,T019;T020;T028,Question retrieves Chroma chunks and returns cited answer from Ollama,Endpoint should support /api/ask-library or equivalent

@@ -183,6 +183,15 @@
 - Dependencies: E07-B01, E15-B02, E06-B01
 - Acceptance criteria: `scripts/build-rag-index.sh` creates a resumable vector index; index metadata is written to `data/rag/library_manifest.json`; backups include index metadata.
 
+- ID: E15-B06
+- Title: Install offline embedding model
+- Description: Pull and validate `nomic-embed-text` in the USB-local Ollama model store so GUIDE can generate embeddings without internet access.
+- Priority: P0
+- Phase: Future
+- Status: Backlog
+- Dependencies: E06-B01, E15-B02
+- Acceptance criteria: `nomic-embed-text` appears in `ollama list`; health checks mark embedding model available; model data is stored under `/mnt/usb/GUIDE/ollama/data`.
+
 - ID: E15-B04
 - Title: Ask Library RAG mode
 - Description: Add an Ask Library mode to GUIDE WebUI that retrieves library chunks from ChromaDB, sends grounded context to Ollama, and returns answers with citations/links back to local library files.
@@ -191,6 +200,15 @@
 - Status: Backlog
 - Dependencies: E15-B03, E06-B01, E09-B01
 - Acceptance criteria: WebUI can answer questions from imported library content; responses include source titles and `/library/...` links; chat still works when RAG index is unavailable.
+
+- ID: E15-B07
+- Title: Ollama RAG orchestration service
+- Description: Add a GUIDE service layer that accepts a user question, retrieves relevant ChromaDB chunks, builds a grounded prompt, calls Ollama, and returns a structured answer with citations.
+- Priority: P0
+- Phase: Future
+- Status: Backlog
+- Dependencies: E15-B03, E15-B04, E15-B06
+- Acceptance criteria: `/api/ask-library` or equivalent endpoint exists; prompts include retrieved source context; responses include answer, confidence/risk notes, and citation links; normal chat remains available.
 
 - ID: E15-B05
 - Title: Long-running library import completion
