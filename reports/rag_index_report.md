@@ -1,6 +1,6 @@
 # RAG Index Report
 
-Generated: 2026-06-21T18:43:22Z
+Generated: 2026-06-22T04:22:15Z
 
 Status: In Progress
 
@@ -18,11 +18,11 @@ Status: In Progress
 
 - Corpus manifest: `data/rag/corpus/manifest.jsonl`
 - Corpus documents available: 56,136
-- Indexed chunks recorded: 640
-- Chroma collection count: 640
+- Indexed chunks recorded: 15,744
+- Chroma collection count: 15,744
 - Indexing errors observed: 0
 
-The full corpus index is resumable. The first smoke run indexed 143 chunks from 100 documents. Follow-up indexing has advanced the collection to 640 verified chunks with zero observed indexing errors.
+The full corpus index is resumable. The first smoke run indexed 143 chunks from 100 documents. Follow-up indexing has advanced the collection to 15,744 verified chunks with zero observed indexing errors.
 
 ## Resume Command
 

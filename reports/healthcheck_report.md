@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-21T18:43:22Z
+Generated: 2026-06-22T04:22:15Z
 
 Runtime: Linux/NUC
 
@@ -8,8 +8,8 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 35
-- Warnings: 1
+- Passed: 34
+- Warnings: 2
 - Failed: 0
 
 | Status | Check | Detail |
@@ -39,7 +39,7 @@ Summary:
 | PASS | Documents writable | /mnt/usb/GUIDE/documents |
 | PASS | ChromaDB path writable | /mnt/usb/GUIDE/data/chroma |
 | PASS | RAG corpus manifest | 56136 rows |
-| PASS | RAG Chroma index | 640 indexed chunks |
+| PASS | RAG Chroma index | 15744 indexed chunks |
 | PASS | zimdump installed | zim-tools 3.7.0 |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
 | PASS | Ollama installed | /mnt/usb/GUIDE/ollama/ollama |
@@ -48,8 +48,8 @@ Summary:
 | PASS | Model: nomic-embed-text | available |
 | WARN | AnythingLLM reachable | not reachable on port 3001 |
 | PASS | AnythingLLM AppImage runtime | installed on USB |
-| PASS | Open WebUI reachable | port 8080 |
+| WARN | Open WebUI reachable | not reachable on port 8080 |
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260621T184321Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260622T042214Z.log`
