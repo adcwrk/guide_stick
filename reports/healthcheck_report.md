@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-22T04:22:15Z
+Generated: 2026-06-26T03:25:02Z
 
 Runtime: Linux/NUC
 
@@ -39,7 +39,7 @@ Summary:
 | PASS | Documents writable | /mnt/usb/GUIDE/documents |
 | PASS | ChromaDB path writable | /mnt/usb/GUIDE/data/chroma |
 | PASS | RAG corpus manifest | 56136 rows |
-| PASS | RAG Chroma index | 15744 indexed chunks |
+| PASS | RAG Chroma index | 213850 indexed chunks |
 | PASS | zimdump installed | zim-tools 3.7.0 |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
 | PASS | Ollama installed | /mnt/usb/GUIDE/ollama/ollama |
@@ -52,4 +52,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260622T042214Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T032502Z.log`

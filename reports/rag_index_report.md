@@ -1,8 +1,8 @@
 # RAG Index Report
 
-Generated: 2026-06-22T04:22:15Z
+Generated: 2026-06-26T03:25:02Z
 
-Status: In Progress
+Status: Complete
 
 ## Runtime
 
@@ -18,20 +18,20 @@ Status: In Progress
 
 - Corpus manifest: `data/rag/corpus/manifest.jsonl`
 - Corpus documents available: 56,136
-- Indexed chunks recorded: 15,744
-- Chroma collection count: 15,744
+- Indexed chunks recorded: 213,850
+- Chroma collection count: 213,850
 - Indexing errors observed: 0
 
-The full corpus index is resumable. The first smoke run indexed 143 chunks from 100 documents. Follow-up indexing has advanced the collection to 15,744 verified chunks with zero observed indexing errors.
+The full corpus index completed successfully. All 56,136 corpus documents were processed into 213,850 ChromaDB chunks with zero observed indexing errors.
 
-## Resume Command
+## Rebuild Command
 
 ```bash
 cd /mnt/usb/GUIDE
 GUIDE_INDEX_BATCH_SIZE=64 ./scripts/build-rag-index.sh
 ```
 
-The indexer uses `data/chroma/library/indexed_ids.txt` to skip completed chunks on reruns.
+The indexer is resumable and uses `data/chroma/library/indexed_ids.txt` to skip completed chunks on reruns.
 
 ## ZIM Tooling
 
