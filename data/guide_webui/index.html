@@ -30,8 +30,10 @@
     .mini { font-size: 13px; }
     .profile-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .inventory-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    .incident-editor { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .gap { border-left: 3px solid #ffd479; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .gap.critical { border-left-color: #ff6b6b; }
+    .timeline { border-left: 3px solid #7ee787; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .citations { margin-top: 12px; display: grid; gap: 8px; }
     .citation { border-left: 3px solid #3f83f8; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .citation a { color: #86b7ff; text-decoration: none; overflow-wrap: anywhere; }
@@ -87,6 +89,16 @@
         <button id="saveInventory">Save Inventory</button>
       </div>
     </section>
+    <section class="panel">
+      <h2 style="margin-top: 0; font-size: 18px;">Incident Records</h2>
+      <div id="incidentStatus" class="status">Checking incidents...</div>
+      <div id="incidentSummary" class="citations"></div>
+      <textarea id="incidentEditor" class="incident-editor" spellcheck="false"></textarea>
+      <div class="controls">
+        <button id="loadIncidents">Load Incidents</button>
+        <button id="saveIncidents">Save Incidents</button>
+      </div>
+    </section>
     <section class="panel status" id="securityPanel">
       <span id="securityStatus">Checking security policy...</span>
     </section>
@@ -119,6 +131,11 @@
     const inventoryEditor = document.getElementById('inventoryEditor');
     const loadInventoryBtn = document.getElementById('loadInventory');
     const saveInventoryBtn = document.getElementById('saveInventory');
+    const incidentStatus = document.getElementById('incidentStatus');
+    const incidentSummary = document.getElementById('incidentSummary');
+    const incidentEditor = document.getElementById('incidentEditor');
+    const loadIncidentsBtn = document.getElementById('loadIncidents');
+    const saveIncidentsBtn = document.getElementById('saveIncidents');
     const appState = { modelsReady: false, ragReady: false, busy: false };
 
     function setBusy(busy) {
@@ -295,6 +312,78 @@
       }
     }
 
+    function renderIncidentSummary(summary) {
+      incidentSummary.innerHTML = '';
+      if (!summary) return;
+      const overview = document.createElement('div');
+      overview.className = 'citation';
+      const statuses = Object.entries(summary.by_status || {}).map(([key, value]) => `${key}: ${value}`).join(', ') || 'none';
+      const severities = Object.entries(summary.by_severity || {}).map(([key, value]) => `${key}: ${value}`).join(', ') || 'none';
+      overview.textContent = `Incidents: ${summary.total_incidents || 0}; open: ${summary.open_incidents || 0}; timeline events: ${summary.timeline_events || 0}; status: ${statuses}; severity: ${severities}`;
+      incidentSummary.appendChild(overview);
+      const events = summary.latest_timeline || [];
+      if (!events.length) {
+        const empty = document.createElement('div');
+        empty.className = 'citation';
+        empty.textContent = 'No timeline events recorded.';
+        incidentSummary.appendChild(empty);
+        return;
+      }
+      for (const event of events) {
+        const item = document.createElement('div');
+        item.className = 'timeline';
+        item.textContent = `${event.timestamp || 'no timestamp'} ${event.incident_title || event.incident_id || 'incident'}: ${event.summary || ''}`;
+        incidentSummary.appendChild(item);
+      }
+    }
+
+    async function loadIncidents() {
+      loadIncidentsBtn.disabled = true;
+      saveIncidentsBtn.disabled = true;
+      setTextStatus(incidentStatus, 'Loading incidents...', 'status');
+      try {
+        const res = await fetch('/api/incidents');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Incidents request failed');
+        incidentEditor.value = JSON.stringify(data.incidents, null, 2);
+        renderIncidentSummary(data.summary);
+        const state = data.status?.exists ? 'saved incidents loaded' : 'new incidents template loaded';
+        setTextStatus(incidentStatus, `${state}: ${data.status?.path || ''}`, data.validation_errors?.length ? 'warn' : 'ok');
+      } catch (err) {
+        setTextStatus(incidentStatus, `Incidents unavailable: ${err.message}`, 'warn');
+      } finally {
+        loadIncidentsBtn.disabled = false;
+        saveIncidentsBtn.disabled = false;
+      }
+    }
+
+    async function saveIncidents() {
+      loadIncidentsBtn.disabled = true;
+      saveIncidentsBtn.disabled = true;
+      setTextStatus(incidentStatus, 'Saving incidents...', 'status');
+      try {
+        const incidents = JSON.parse(incidentEditor.value);
+        const res = await fetch('/api/incidents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ incidents })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const errors = (data.validation_errors || [data.error || 'Save failed']).join('; ');
+          throw new Error(errors);
+        }
+        incidentEditor.value = JSON.stringify(data.incidents, null, 2);
+        renderIncidentSummary(data.summary);
+        setTextStatus(incidentStatus, `incidents saved: ${data.status?.path || ''}`, 'ok');
+      } catch (err) {
+        setTextStatus(incidentStatus, `Incidents save failed: ${err.message}`, 'warn');
+      } finally {
+        loadIncidentsBtn.disabled = false;
+        saveIncidentsBtn.disabled = false;
+      }
+    }
+
     async function loadModels() {
       statusEl.textContent = 'Checking Ollama...';
       modelSelect.innerHTML = '';
@@ -451,12 +540,15 @@
     saveProfileBtn.addEventListener('click', saveProfile);
     loadInventoryBtn.addEventListener('click', loadInventory);
     saveInventoryBtn.addEventListener('click', saveInventory);
+    loadIncidentsBtn.addEventListener('click', loadIncidents);
+    saveIncidentsBtn.addEventListener('click', saveIncidents);
     loadRuntimeStatus();
     loadModels();
     loadRagStatus();
     loadLibrary();
     loadProfile();
     loadInventory();
+    loadIncidents();
   </script>
 </body>
 </html>

@@ -25,6 +25,9 @@ data/guide/profile/*.tmp
 data/guide/inventory/inventory.json
 data/guide/inventory/*.local.json
 data/guide/inventory/*.tmp
+data/guide/incidents/incidents.json
+data/guide/incidents/*.local.json
+data/guide/incidents/*.tmp
 tools/uv/
 tools/python/
 tools/zim-tools/

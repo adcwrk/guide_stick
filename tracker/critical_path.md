@@ -17,6 +17,9 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 7 | T029 Add RAG orchestration endpoint | Complete with Warnings | `/api/ask-library` retrieves Chroma chunks, builds source context, asks Ollama, and returns cited answers; answer quality still depends on corpus coverage and future native ZIM extraction. |
 | 8 | T020 Add Ask Library UI | Complete with Warnings | Ask Library status, citation rendering, risk notes, fallback behavior, and auth-policy status are implemented. |
 | 9 | T021 Add RAG operations checks | Complete with Warnings | RAG ops checks validate corpus manifest rows, source inventory, index freshness, indexed chunk counts, and live Chroma collection count; warnings remain for deferred/partial ZIM extraction. |
+| 10 | T023 Define household preparedness profile schema | Complete with Warnings | Establishes the household context used by preparedness and operations workflows. |
+| 11 | T024 Define preparedness inventory schema | Complete with Warnings | Adds local supplies data and gap calculations used during incidents. |
+| 12 | T025 Define incident records and operational timeline | Complete with Warnings | Adds incident status, resources, documents, recommendations, and timeline events under authenticated WebUI/API control. |
 
 ## Phase Gates
 
@@ -30,13 +33,12 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T025: Define incident records and operational timeline.
+T026: Define communications center schema and templates.
 
-Reason: T024 is complete with warnings. The next GUIDE platform blocker is the incident record and timeline schema that depends on the profile and Ask Library foundations.
+Reason: T025 is complete with warnings. The next GUIDE operations blocker is a communications center data path for message templates, contact/radio planning, and offline comms logs.
 
 ## Parallel Work That Does Not Block RAG
 
-- T025: Define incident records and operational timeline.
 - T026: Define communications center schema and templates.
 - T027: Decide map import/viewer strategy.
 
@@ -51,4 +53,5 @@ Reason: T024 is complete with warnings. The next GUIDE platform blocker is the i
 - T021 is complete with warnings: `scripts/check-rag-ops.sh` writes `data/rag/library_manifest.json` and `reports/rag_operations_report.md`; current checks report 15 pass, 2 warn, 0 fail. Warnings are deferred native ZIM extraction and one partial ZIM import record.
 - T023 is complete with warnings: the household profile schema, example template, authenticated `/api/profile` load/save endpoint, and WebUI JSON editor are implemented under `data/guide/profile`; richer form-based intake remains future UI refinement.
 - T024 is complete with warnings: the inventory schema, example template, authenticated `/api/inventory` load/save endpoint, WebUI JSON editor, and water/food/medication/power gap calculations are implemented under `data/guide/inventory`; richer category-specific inventory UI remains future refinement.
+- T025 is complete with warnings: the incident schema, example template, authenticated `/api/incidents` load/save endpoint, WebUI JSON editor, and operational timeline summary are implemented under `data/guide/incidents`; richer incident dashboard and guided operational forms remain future refinement.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.

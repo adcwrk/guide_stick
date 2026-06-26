@@ -61,6 +61,16 @@
       "notes": "Stores the JSON Schema, example template, and local inventory.json data file used for duration and shortfall calculations."
     },
     {
+      "name": "guide-incidents",
+      "role": "incident_records_and_operational_timeline_store",
+      "default_port": null,
+      "default_bind": "local_storage",
+      "remote_default": false,
+      "data_path": "data/guide/incidents",
+      "auth": "protected_by_guide_webui_auth",
+      "notes": "Stores the JSON Schema, example template, and local incidents.json data file used for incident status, resources, recommendations, and timeline events."
+    },
+    {
       "name": "chromadb",
       "role": "vector_store",
       "default_port": null,

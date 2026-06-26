@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guide.local/schemas/incidents.schema.json",
+  "title": "GUIDE Incident Records",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at", "incidents", "notes"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "notes": { "type": "string" },
+    "incidents": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/incident" }
+    }
+  },
+  "$defs": {
+    "incident": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "incident_type",
+        "status",
+        "severity",
+        "started_at",
+        "location",
+        "summary",
+        "objectives",
+        "resources",
+        "timeline",
+        "documents",
+        "recommendations",
+        "notes"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "title": { "type": "string" },
+        "incident_type": {
+          "type": "string",
+          "enum": [
+            "medical",
+            "power_outage",
+            "severe_weather",
+            "wildfire",
+            "flood",
+            "search_and_rescue",
+            "communications_failure",
+            "evacuation",
+            "security",
+            "other"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["monitoring", "active", "stabilized", "resolved", "closed"]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "started_at": { "type": "string", "format": "date-time" },
+        "ended_at": { "type": "string" },
+        "location": { "$ref": "#/$defs/location" },
+        "summary": { "type": "string" },
+        "objectives": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/objective" }
+        },
+        "resources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resource" }
+        },
+        "timeline": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/timeline_event" }
+        },
+        "documents": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/document_ref" }
+        },
+        "recommendations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/recommendation" }
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "address_or_description", "latitude", "longitude"],
+      "properties": {
+        "label": { "type": "string" },
+        "address_or_description": { "type": "string" },
+        "latitude": { "type": ["number", "null"], "minimum": -90, "maximum": 90 },
+        "longitude": { "type": ["number", "null"], "minimum": -180, "maximum": 180 }
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "status", "owner", "due_at"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "in_progress", "blocked", "complete"] },
+        "owner": { "type": "string" },
+        "due_at": { "type": "string" }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "category", "status", "location", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["available", "assigned", "depleted", "unavailable", "unknown"] },
+        "location": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "timeline_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "timestamp", "event_type", "summary", "source", "actions_taken"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "event_type": {
+          "type": "string",
+          "enum": ["observation", "decision", "action", "communication", "resource_update", "status_change", "note"]
+        },
+        "summary": { "type": "string" },
+        "source": { "type": "string" },
+        "actions_taken": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "document_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "path_or_url", "notes"],
+      "properties": {
+        "title": { "type": "string" },
+        "path_or_url": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "created_at", "summary", "source_citations", "status"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "summary": { "type": "string" },
+        "source_citations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": { "type": "string", "enum": ["proposed", "accepted", "rejected", "completed"] }
+      }
+    }
+  }
+}

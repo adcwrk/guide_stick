@@ -162,6 +162,10 @@ GUIDE stores household preparedness profile data under `data/guide/profile`. The
 
 GUIDE stores preparedness inventory data under `data/guide/inventory`. The schema and example template are tracked in git; the local inventory JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/inventory` and `POST /api/inventory` endpoints, calculates water, food, medication, and power gaps from the household profile, and displays critical inventory shortfalls.
 
+## GUIDE Incident Records
+
+GUIDE stores incident records and operational timelines under `data/guide/incidents`. The schema and example template are tracked in git; the local incidents JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/incidents` and `POST /api/incidents` endpoints, summarizes incident status and severity counts, and displays the latest timeline events for active operations.
+
 ## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
 
 ```

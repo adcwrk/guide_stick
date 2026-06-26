@@ -27,6 +27,10 @@ INVENTORY_DIR = ROOT / "data" / "guide" / "inventory"
 INVENTORY_SCHEMA_PATH = INVENTORY_DIR / "inventory.schema.json"
 INVENTORY_EXAMPLE_PATH = INVENTORY_DIR / "inventory.example.json"
 INVENTORY_DATA_PATH = Path(os.environ.get("GUIDE_INVENTORY_PATH") or INVENTORY_DIR / "inventory.json")
+INCIDENT_DIR = ROOT / "data" / "guide" / "incidents"
+INCIDENT_SCHEMA_PATH = INCIDENT_DIR / "incidents.schema.json"
+INCIDENT_EXAMPLE_PATH = INCIDENT_DIR / "incidents.example.json"
+INCIDENT_DATA_PATH = Path(os.environ.get("GUIDE_INCIDENTS_PATH") or INCIDENT_DIR / "incidents.json")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 RAG_COLLECTION = os.environ.get("GUIDE_RAG_COLLECTION", "guide_library")
 EMBED_MODEL = os.environ.get("GUIDE_EMBED_MODEL", "nomic-embed-text")
@@ -283,6 +287,141 @@ def save_inventory(inventory):
     return []
 
 
+def load_incidents_schema():
+    return json.loads(INCIDENT_SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def incidents_template():
+    return json.loads(INCIDENT_EXAMPLE_PATH.read_text(encoding="utf-8"))
+
+
+def incidents_status():
+    return {
+        "schema": str(INCIDENT_SCHEMA_PATH),
+        "example": str(INCIDENT_EXAMPLE_PATH),
+        "path": str(INCIDENT_DATA_PATH),
+        "exists": INCIDENT_DATA_PATH.exists(),
+    }
+
+
+def load_incidents():
+    if INCIDENT_DATA_PATH.exists():
+        return json.loads(INCIDENT_DATA_PATH.read_text(encoding="utf-8"))
+    return incidents_template()
+
+
+def validate_incidents(incidents_doc):
+    errors = []
+    if not isinstance(incidents_doc, dict):
+        return ["incidents must be a JSON object"]
+    for key in ("schema_version", "updated_at", "incidents", "notes"):
+        if key not in incidents_doc:
+            errors.append(f"missing required field: {key}")
+    if incidents_doc.get("schema_version") != "1.0.0":
+        errors.append("schema_version must be 1.0.0")
+    incidents = incidents_doc.get("incidents")
+    if not isinstance(incidents, list):
+        errors.append("incidents must be an array")
+        return errors
+    allowed_types = {
+        "medical", "power_outage", "severe_weather", "wildfire", "flood",
+        "search_and_rescue", "communications_failure", "evacuation", "security", "other",
+    }
+    allowed_statuses = {"monitoring", "active", "stabilized", "resolved", "closed"}
+    allowed_severities = {"low", "medium", "high", "critical"}
+    allowed_event_types = {
+        "observation", "decision", "action", "communication",
+        "resource_update", "status_change", "note",
+    }
+    required_incident_fields = (
+        "id", "title", "incident_type", "status", "severity", "started_at",
+        "location", "summary", "objectives", "resources", "timeline",
+        "documents", "recommendations", "notes",
+    )
+    for idx, incident in enumerate(incidents):
+        if not isinstance(incident, dict):
+            errors.append(f"incidents[{idx}] must be an object")
+            continue
+        for key in required_incident_fields:
+            if key not in incident:
+                errors.append(f"incidents[{idx}] missing required field: {key}")
+        if incident.get("incident_type") not in allowed_types:
+            errors.append(f"incidents[{idx}].incident_type is invalid")
+        if incident.get("status") not in allowed_statuses:
+            errors.append(f"incidents[{idx}].status is invalid")
+        if incident.get("severity") not in allowed_severities:
+            errors.append(f"incidents[{idx}].severity is invalid")
+        if "location" in incident and not isinstance(incident["location"], dict):
+            errors.append(f"incidents[{idx}].location must be an object")
+        for key in ("objectives", "resources", "timeline", "documents", "recommendations"):
+            if key in incident and not isinstance(incident[key], list):
+                errors.append(f"incidents[{idx}].{key} must be an array")
+        for event_idx, event in enumerate(incident.get("timeline") or []):
+            if not isinstance(event, dict):
+                errors.append(f"incidents[{idx}].timeline[{event_idx}] must be an object")
+                continue
+            for key in ("id", "timestamp", "event_type", "summary", "source", "actions_taken"):
+                if key not in event:
+                    errors.append(f"incidents[{idx}].timeline[{event_idx}] missing required field: {key}")
+            if event.get("event_type") not in allowed_event_types:
+                errors.append(f"incidents[{idx}].timeline[{event_idx}].event_type is invalid")
+            if "actions_taken" in event and not isinstance(event["actions_taken"], list):
+                errors.append(f"incidents[{idx}].timeline[{event_idx}].actions_taken must be an array")
+    return errors
+
+
+def save_incidents(incidents_doc):
+    errors = validate_incidents(incidents_doc)
+    if errors:
+        return errors
+    incidents_doc["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    INCIDENT_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = INCIDENT_DATA_PATH.with_suffix(INCIDENT_DATA_PATH.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(incidents_doc, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp_path.replace(INCIDENT_DATA_PATH)
+    return []
+
+
+def summarize_incidents(incidents_doc):
+    incidents = incidents_doc.get("incidents") if isinstance(incidents_doc, dict) else []
+    if not isinstance(incidents, list):
+        incidents = []
+    by_status = {}
+    by_severity = {}
+    by_type = {}
+    timeline = []
+    for incident in incidents:
+        if not isinstance(incident, dict):
+            continue
+        status = incident.get("status") or "unknown"
+        severity = incident.get("severity") or "unknown"
+        incident_type = incident.get("incident_type") or "unknown"
+        by_status[status] = by_status.get(status, 0) + 1
+        by_severity[severity] = by_severity.get(severity, 0) + 1
+        by_type[incident_type] = by_type.get(incident_type, 0) + 1
+        for event in incident.get("timeline") or []:
+            if not isinstance(event, dict):
+                continue
+            timeline.append({
+                "incident_id": incident.get("id") or "",
+                "incident_title": incident.get("title") or "",
+                "timestamp": event.get("timestamp") or "",
+                "event_type": event.get("event_type") or "",
+                "summary": event.get("summary") or "",
+                "source": event.get("source") or "",
+            })
+    timeline.sort(key=lambda item: item["timestamp"], reverse=True)
+    return {
+        "total_incidents": len(incidents),
+        "open_incidents": sum(by_status.get(key, 0) for key in ("monitoring", "active", "stabilized")),
+        "by_status": by_status,
+        "by_severity": by_severity,
+        "by_type": by_type,
+        "timeline_events": len(timeline),
+        "latest_timeline": timeline[:8],
+    }
+
+
 def household_people_count(profile):
     people = profile.get("people") if isinstance(profile, dict) else []
     if isinstance(people, list) and people:
@@ -449,6 +588,7 @@ def runtime_status():
         },
         "profile": profile_status(),
         "inventory": inventory_status(),
+        "incidents": incidents_status(),
         "auth": {
             "required_by_policy": AUTH_REQUIRED,
             "enforced_by_webui": AUTH_ENFORCED,
@@ -740,6 +880,20 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(500, {"error": str(exc)})
             return
 
+        if self.path == "/api/incidents":
+            try:
+                incidents_doc = load_incidents()
+                self.send_json(200, {
+                    "incidents": incidents_doc,
+                    "schema": load_incidents_schema(),
+                    "status": incidents_status(),
+                    "validation_errors": validate_incidents(incidents_doc),
+                    "summary": summarize_incidents(incidents_doc),
+                })
+            except Exception as exc:
+                self.send_json(500, {"error": str(exc)})
+            return
+
         if self.path == "/library" or self.path.startswith("/library/"):
             requested = self.path.removeprefix("/library").lstrip("/")
             target = safe_child(LIBRARY_DIR, requested)
@@ -777,7 +931,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.require_auth():
             return
 
-        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile", "/api/inventory"):
+        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile", "/api/inventory", "/api/incidents"):
             self.send_error(404)
             return
         try:
@@ -795,6 +949,19 @@ class Handler(BaseHTTPRequestHandler):
                     "status": inventory_status(),
                     "validation_errors": [],
                     "calculations": calculate_inventory(load_profile(), saved),
+                })
+            elif self.path == "/api/incidents":
+                incidents_doc = incoming.get("incidents") if isinstance(incoming, dict) and "incidents" in incoming else incoming
+                errors = save_incidents(incidents_doc)
+                if errors:
+                    self.send_json(400, {"error": "incidents validation failed", "validation_errors": errors})
+                    return
+                saved = load_incidents()
+                self.send_json(200, {
+                    "incidents": saved,
+                    "status": incidents_status(),
+                    "validation_errors": [],
+                    "summary": summarize_incidents(saved),
                 })
             elif self.path == "/api/profile":
                 profile = incoming.get("profile") if isinstance(incoming, dict) and "profile" in incoming else incoming

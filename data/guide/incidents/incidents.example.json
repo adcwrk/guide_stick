@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-06-26T00:00:00Z",
+  "notes": "",
+  "incidents": [
+    {
+      "id": "incident_001",
+      "title": "Example power outage",
+      "incident_type": "power_outage",
+      "status": "monitoring",
+      "severity": "medium",
+      "started_at": "2026-06-26T00:00:00Z",
+      "ended_at": "",
+      "location": {
+        "label": "Home",
+        "address_or_description": "",
+        "latitude": null,
+        "longitude": null
+      },
+      "summary": "Starter incident record for testing the operational timeline.",
+      "objectives": [
+        {
+          "id": "obj_001",
+          "description": "Confirm household status and critical power needs.",
+          "status": "open",
+          "owner": "",
+          "due_at": ""
+        }
+      ],
+      "resources": [
+        {
+          "id": "res_001",
+          "name": "Battery storage",
+          "category": "power",
+          "status": "unknown",
+          "location": "",
+          "notes": ""
+        }
+      ],
+      "timeline": [
+        {
+          "id": "evt_001",
+          "timestamp": "2026-06-26T00:00:00Z",
+          "event_type": "observation",
+          "summary": "Incident record created.",
+          "source": "GUIDE template",
+          "actions_taken": []
+        }
+      ],
+      "documents": [],
+      "recommendations": [],
+      "notes": ""
+    }
+  ]
+}

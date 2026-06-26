@@ -47,7 +47,8 @@ As of this tracker version:
 7. T011 is complete with warnings.
 8. T023 is complete with warnings.
 9. T024 is complete with warnings.
-10. T025 is the first incomplete critical-path task.
+10. T025 is complete with warnings.
+11. T026 is the first incomplete critical-path task.
 
 ## Agent Prompt
 
