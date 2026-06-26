@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import base64
+import hmac
 import json
 import mimetypes
 import os
+import secrets
 import subprocess
 import sys
 import urllib.error
@@ -23,7 +26,8 @@ DEFAULT_TOP_K = int(os.environ.get("GUIDE_RAG_TOP_K", "6"))
 MAX_TOP_K = int(os.environ.get("GUIDE_RAG_MAX_TOP_K", "12"))
 MAX_CONTEXT_CHARS = int(os.environ.get("GUIDE_RAG_MAX_CONTEXT_CHARS", "14000"))
 AUTH_REQUIRED = os.environ.get("ENABLE_AUTH", "true").lower() not in ("0", "false", "no", "off")
-AUTH_ENFORCED = False
+AUTH_USER = os.environ.get("GUIDE_WEBUI_USER", "guide")
+AUTH_PASSWORD_FILE = Path(os.environ.get("GUIDE_WEBUI_PASSWORD_FILE") or ROOT / "config" / "guide-webui.password")
 
 
 def find_rag_python():
@@ -53,6 +57,32 @@ if PYTHON_PACKAGES.exists() and sys.version_info[:2] != (3, 12) and os.environ.g
 
 if PYTHON_PACKAGES.exists():
     sys.path.insert(0, str(PYTHON_PACKAGES))
+
+
+def load_webui_password():
+    configured = os.environ.get("GUIDE_WEBUI_PASSWORD")
+    if configured:
+        return configured, "GUIDE_WEBUI_PASSWORD"
+    if AUTH_PASSWORD_FILE.exists():
+        password = AUTH_PASSWORD_FILE.read_text(encoding="utf-8").strip()
+        if not password:
+            raise RuntimeError(f"GUIDE WebUI password file is empty: {AUTH_PASSWORD_FILE}")
+        return password, str(AUTH_PASSWORD_FILE)
+    AUTH_PASSWORD_FILE.parent.mkdir(parents=True, exist_ok=True)
+    password = secrets.token_urlsafe(24)
+    AUTH_PASSWORD_FILE.write_text(password + "\n", encoding="utf-8")
+    try:
+        AUTH_PASSWORD_FILE.chmod(0o600)
+    except OSError:
+        pass
+    return password, str(AUTH_PASSWORD_FILE)
+
+
+AUTH_PASSWORD = ""
+AUTH_PASSWORD_SOURCE = ""
+if AUTH_REQUIRED:
+    AUTH_PASSWORD, AUTH_PASSWORD_SOURCE = load_webui_password()
+AUTH_ENFORCED = AUTH_REQUIRED and bool(AUTH_PASSWORD)
 
 
 def ollama_json(path, payload=None):
@@ -112,10 +142,15 @@ def runtime_status():
         "auth": {
             "required_by_policy": AUTH_REQUIRED,
             "enforced_by_webui": AUTH_ENFORCED,
+            "username": AUTH_USER if AUTH_ENFORCED else "",
+            "password_source": AUTH_PASSWORD_SOURCE if AUTH_ENFORCED else "",
             "warning": (
-                "ENABLE_AUTH is true, but the lightweight GUIDE WebUI does not enforce authentication yet. "
-                "Keep it on localhost or a trusted LAN until T011 is complete."
-                if AUTH_REQUIRED and not AUTH_ENFORCED else ""
+                "GUIDE WebUI authentication is enforced with HTTP Basic auth. "
+                "Use it only on localhost or a trusted LAN unless TLS is provided by a separate reverse proxy."
+                if AUTH_ENFORCED else
+                "ENABLE_AUTH is true, but no GUIDE WebUI password is configured."
+                if AUTH_REQUIRED else
+                "GUIDE WebUI authentication is disabled by configuration."
             ),
         },
     }
@@ -297,6 +332,38 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def send_auth_required(self):
+        body = json.dumps({"error": "authentication required"}).encode("utf-8")
+        self.send_response(401)
+        self.send_header("WWW-Authenticate", 'Basic realm="GUIDE WebUI", charset="UTF-8"')
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def is_authenticated(self):
+        if not AUTH_REQUIRED:
+            return True
+        header = self.headers.get("Authorization", "")
+        scheme, _, token = header.partition(" ")
+        if scheme.lower() != "basic" or not token:
+            return False
+        try:
+            decoded = base64.b64decode(token, validate=True).decode("utf-8")
+        except Exception:
+            return False
+        user, sep, password = decoded.partition(":")
+        if not sep:
+            return False
+        return hmac.compare_digest(user, AUTH_USER) and hmac.compare_digest(password, AUTH_PASSWORD)
+
+    def require_auth(self):
+        if self.is_authenticated():
+            return True
+        self.send_auth_required()
+        return False
+
     def do_OPTIONS(self):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -305,6 +372,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if not self.require_auth():
+            return
+
         if self.path == "/api/tags":
             try:
                 self.send_json(200, ollama_json("/api/tags"))
@@ -366,6 +436,9 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def do_POST(self):
+        if not self.require_auth():
+            return
+
         if self.path not in ("/api/chat", "/api/ask-library"):
             self.send_error(404)
             return
@@ -405,6 +478,10 @@ def main():
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
     httpd = ThreadingHTTPServer((host, port), Handler)
     print(f"GUIDE WebUI listening on http://{host}:{port}")
+    if AUTH_ENFORCED:
+        print(f"GUIDE WebUI auth enabled for user '{AUTH_USER}'. Password source: {AUTH_PASSWORD_SOURCE}")
+    else:
+        print("GUIDE WebUI auth disabled.")
     httpd.serve_forever()
 
 

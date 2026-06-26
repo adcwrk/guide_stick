@@ -148,8 +148,11 @@ Remote GUI access is intended for trusted LANs only. Do not expose these ports d
 - AnythingLLM: default port `3001`
 - Open WebUI: default port `8080`
 - Ollama: default port `11434`, remote access disabled unless `ENABLE_REMOTE_OLLAMA=true`
+- Lightweight GUIDE WebUI: protected with HTTP Basic auth when `ENABLE_AUTH=true`
 
-No passwords are hard-coded in this repository. Complete the GUI's first-run admin or user setup before relying on LAN access. If a selected GUI/runtime does not expose authentication in the launch mode being used, treat LAN access as unsafe and disable it in `config/portable.env`.
+No passwords are hard-coded in this repository. For the lightweight GUIDE WebUI, set `GUIDE_WEBUI_USER` plus either `GUIDE_WEBUI_PASSWORD` or `GUIDE_WEBUI_PASSWORD_FILE` in `config/portable.env`. If no password source is set and `ENABLE_AUTH=true`, the WebUI generates `config/guide-webui.password` on first run. That file is ignored by git.
+
+HTTP Basic auth is not a TLS replacement. Keep LAN access on a trusted network unless a separate authenticated TLS reverse proxy is provided. For AnythingLLM or Open WebUI, complete the GUI's first-run admin or user setup before relying on LAN access.
 
 ## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
 

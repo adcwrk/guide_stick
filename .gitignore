@@ -23,6 +23,7 @@ tools/uv/
 tools/python/
 tools/zim-tools/
 downloads/
+config/guide-webui.password
 
 # Large model binaries and Ollama blobs
 models/*.gguf

@@ -24,6 +24,7 @@ fi
 ANYTHINGLLM_PORT="${ANYTHINGLLM_PORT:-3001}"
 OPENWEBUI_PORT="${OPENWEBUI_PORT:-8080}"
 OLLAMA_PORT="${OLLAMA_PORT:-11434}"
+GUIDE_WEBUI_PORT="${GUIDE_WEBUI_PORT:-8080}"
 ENABLE_OPENWEBUI="${ENABLE_OPENWEBUI:-true}"
 ANYTHINGLLM_RUNTIME="${ANYTHINGLLM_RUNTIME:-auto}"
 OLLAMA_MODELS="${OLLAMA_MODELS:-$USB_DIR/ollama/data}"
@@ -99,6 +100,22 @@ if curl -fsS "http://127.0.0.1:$OLLAMA_PORT/api/tags" >/dev/null 2>&1; then
 else
   record WARN "Ollama reachable" "not reachable on port $OLLAMA_PORT"
 fi
+
+guide_status_body="$(mktemp)"
+guide_status_code="$(curl -sS -o "$guide_status_body" -w '%{http_code}' "http://127.0.0.1:$GUIDE_WEBUI_PORT/api/status" 2>/dev/null || true)"
+if [ "$guide_status_code" = "401" ]; then
+  record PASS "GUIDE WebUI auth" "unauthenticated /api/status returned 401 on port $GUIDE_WEBUI_PORT"
+elif [ "$guide_status_code" = "200" ]; then
+  guide_auth_marker="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("auth", {}).get("enforced_by_webui"))' "$guide_status_body" 2>/dev/null || true)"
+  if [ "$ENABLE_AUTH" = "true" ] && [ "$guide_auth_marker" = "False" ]; then
+    record FAIL "GUIDE WebUI auth" "ENABLE_AUTH=true but unauthenticated /api/status returned 200 on port $GUIDE_WEBUI_PORT"
+  else
+    record WARN "GUIDE WebUI auth" "unauthenticated /api/status returned 200 on port $GUIDE_WEBUI_PORT; verify service identity or ENABLE_AUTH setting"
+  fi
+else
+  record WARN "GUIDE WebUI auth" "lightweight WebUI not reachable on port $GUIDE_WEBUI_PORT"
+fi
+rm -f "$guide_status_body"
 
 if bin="$(ollama_bin)"; then
   record PASS "Ollama installed" "$bin"

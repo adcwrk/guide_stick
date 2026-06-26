@@ -111,10 +111,11 @@
         const res = await fetch('/api/status');
         const data = await res.json();
         const auth = data.auth || {};
-        if (auth.warning) {
+        if (auth.enforced_by_webui) {
+          const detail = auth.warning ? ` ${auth.warning}` : '';
+          setTextStatus(securityStatus, `Authentication is enforced for user ${auth.username}.${detail}`, 'ok');
+        } else if (auth.warning) {
           setTextStatus(securityStatus, auth.warning, 'danger');
-        } else if (auth.enforced_by_webui) {
-          setTextStatus(securityStatus, 'Authentication is enforced by the GUIDE WebUI.', 'ok');
         } else {
           setTextStatus(securityStatus, 'Authentication is not required by the current policy.', 'status');
         }

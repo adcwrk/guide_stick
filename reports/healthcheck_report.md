@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-26T06:10:23Z
+Generated: 2026-06-26T06:23:14Z
 
 Runtime: Linux/NUC
 
@@ -8,7 +8,7 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 36
+- Passed: 37
 - Warnings: 2
 - Failed: 0
 
@@ -44,6 +44,7 @@ Summary:
 | PASS | zimdump installed | zim-tools 3.7.0 |
 | PASS | RAG operations checks | complete_with_warnings: 15 pass, 2 warn, 0 fail |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
+| PASS | GUIDE WebUI auth | unauthenticated /api/status returned 401 on port 8090 |
 | PASS | Ollama installed | /mnt/usb/GUIDE/ollama/ollama |
 | PASS | Model: qwen2.5:7b | available |
 | PASS | Model: llama3.2:3b | available |
@@ -54,4 +55,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T061020Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T062311Z.log`

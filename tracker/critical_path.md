@@ -15,7 +15,7 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; USB-local `zimdump` is installed, and native ZIM article extraction is deferred as a targeted size-guarded job. |
 | 6 | T019 Build ChromaDB library index | Complete | ChromaDB `guide_library` contains 213,850 indexed chunks for all 56,136 corpus documents. |
 | 7 | T029 Add RAG orchestration endpoint | Complete with Warnings | `/api/ask-library` retrieves Chroma chunks, builds source context, asks Ollama, and returns cited answers; answer quality still depends on corpus coverage and future native ZIM extraction. |
-| 8 | T020 Add Ask Library UI | Complete with Warnings | Ask Library status, citation rendering, risk notes, fallback behavior, and auth-policy warning are implemented; T011 still needs real WebUI auth enforcement. |
+| 8 | T020 Add Ask Library UI | Complete with Warnings | Ask Library status, citation rendering, risk notes, fallback behavior, and auth-policy status are implemented. |
 | 9 | T021 Add RAG operations checks | Complete with Warnings | RAG ops checks validate corpus manifest rows, source inventory, index freshness, indexed chunk counts, and live Chroma collection count; warnings remain for deferred/partial ZIM extraction. |
 
 ## Phase Gates
@@ -30,13 +30,12 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T011: Add authentication to the lightweight GUIDE WebUI or document compensating controls.
+T023: Define household preparedness profile schema.
 
-Reason: T021 completes the RAG critical path with warnings. T011 is now the next blocker for GUIDE platform work because T023 and later user-data features depend on the security gate.
+Reason: T011 is complete with warnings, so the next GUIDE platform blocker is the first user-data schema required by downstream preparedness and incident workflows.
 
 ## Parallel Work That Does Not Block RAG
 
-- T011: Add authentication to the lightweight GUIDE WebUI or document compensating controls.
 - T023: Define household preparedness profile schema.
 - T024: Define preparedness inventory schema and calculations.
 - T025: Define incident records and operational timeline.
@@ -49,6 +48,7 @@ Reason: T021 completes the RAG critical path with warnings. T011 is now the next
 - T018 is complete with warnings because 56,136 HTML/text corpus documents were generated with zero extraction failures, but full native ZIM article extraction remains a deliberate targeted job. USB-local `zimdump` is installed; large dumps are guarded by `ZIM_MAX_BYTES`.
 - T019 is complete: 56,136 corpus documents produced 213,850 indexed ChromaDB chunks with 0 indexing errors.
 - T029 is complete with warnings: `/api/ask-library` works against the completed Chroma index and returns cited answers, but retrieval quality is only as good as the current HTML/text corpus. Native ZIM article extraction remains deferred.
-- T020 is complete with warnings: the WebUI exposes Ask Library with index readiness, citations, risk notes, fallback to normal chat, and an auth-policy warning. T011 remains open for actual WebUI auth enforcement.
+- T011 is complete with warnings: lightweight GUIDE WebUI auth is enforced with HTTP Basic auth when `ENABLE_AUTH=true`; TLS requires a separate reverse proxy, and AnythingLLM/Open WebUI still rely on their own first-run auth flows.
+- T020 is complete with warnings: the WebUI exposes Ask Library with index readiness, citations, risk notes, fallback to normal chat, and auth-policy status.
 - T021 is complete with warnings: `scripts/check-rag-ops.sh` writes `data/rag/library_manifest.json` and `reports/rag_operations_report.md`; current checks report 15 pass, 2 warn, 0 fail. Warnings are deferred native ZIM extraction and one partial ZIM import record.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.

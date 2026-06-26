@@ -14,19 +14,19 @@ T020 is complete with warnings. The lightweight GUIDE WebUI now provides a sourc
 - Renders citation links returned by `/api/ask-library`.
 - Renders RAG risk notes returned by the backend.
 - Shows auth policy status from `GET /api/status`.
-- Warns when `ENABLE_AUTH=true` but the lightweight GUIDE WebUI is not enforcing authentication yet.
+- Reports when the lightweight GUIDE WebUI is enforcing authentication.
 
 ## Runtime Validation
 
 - `python3 -m py_compile scripts/guide-webui.py`: passed.
 - Inline browser script syntax check with `node --check`: passed.
-- `GET /api/status`: returned `required_by_policy=true`, `enforced_by_webui=false`, and an explicit trusted-LAN warning.
+- `GET /api/status`: returned auth policy details. T011 later added lightweight WebUI auth enforcement.
 - `GET /api/library-index`: returned `status=complete`, `collection_count=213850`, and no live collection error.
 - `POST /api/ask-library`: returned HTTP 200 with an answer, 3 citations, 2 risk notes, and `index_status.status=complete`.
 
 ## Warning
 
-T011 remains open. The UI now clearly warns when auth is required by policy but not enforced by this lightweight WebUI. Until T011 is complete, run the WebUI only on localhost or a trusted LAN.
+T011 later added HTTP Basic auth enforcement for the lightweight GUIDE WebUI. HTTP Basic auth still requires localhost, trusted LAN, or a separate TLS reverse proxy for stronger transport protection.
 
 ## Next Task
 

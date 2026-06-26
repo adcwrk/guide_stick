@@ -31,6 +31,16 @@
       "notes": "Open WebUI normally requires first user/admin account creation. Store persistent data on USB."
     },
     {
+      "name": "guide-webui",
+      "role": "lightweight_guide_rag_gui",
+      "default_port": 8080,
+      "default_bind": "0.0.0.0",
+      "remote_default": true,
+      "data_path": "data/guide_webui",
+      "auth": "http_basic_when_ENABLE_AUTH_true",
+      "notes": "Uses GUIDE_WEBUI_USER plus GUIDE_WEBUI_PASSWORD or GUIDE_WEBUI_PASSWORD_FILE. If neither password source is set, a local config/guide-webui.password file is generated on first run."
+    },
+    {
       "name": "chromadb",
       "role": "vector_store",
       "default_port": null,
