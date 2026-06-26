@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guide.local/schemas/household_profile.schema.json",
+  "title": "GUIDE Household Preparedness Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_type",
+    "household",
+    "people",
+    "pets",
+    "medical",
+    "power",
+    "mobility",
+    "communications",
+    "preparedness_goals"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "profile_type": {
+      "type": "string",
+      "enum": ["household", "organization"]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "household": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "location_label", "primary_language", "planning_horizon_days"],
+      "properties": {
+        "name": { "type": "string" },
+        "location_label": { "type": "string" },
+        "primary_language": { "type": "string" },
+        "planning_horizon_days": { "type": "integer", "minimum": 1, "maximum": 365 },
+        "home_type": {
+          "type": "string",
+          "enum": ["single_family", "apartment", "mobile_home", "rural_property", "vehicle", "other", "unknown"]
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "people": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/person" }
+    },
+    "pets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pet" }
+    },
+    "medical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conditions", "medications", "equipment", "care_notes"],
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/condition" }
+        },
+        "medications": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/medication" }
+        },
+        "equipment": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/medical_equipment" }
+        },
+        "care_notes": { "type": "string" }
+      }
+    },
+    "power": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependencies", "backup_sources", "critical_loads"],
+      "properties": {
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/power_dependency" }
+        },
+        "backup_sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/power_source" }
+        },
+        "critical_loads": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/critical_load" }
+        }
+      }
+    },
+    "mobility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limitations", "assistive_devices", "transportation_notes"],
+      "properties": {
+        "limitations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/mobility_limitation" }
+        },
+        "assistive_devices": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "transportation_notes": { "type": "string" }
+      }
+    },
+    "communications": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contacts", "devices", "rally_points"],
+      "properties": {
+        "contacts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contact" }
+        },
+        "devices": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/communication_device" }
+        },
+        "rally_points": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/rally_point" }
+        }
+      }
+    },
+    "preparedness_goals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/preparedness_goal" }
+    }
+  },
+  "$defs": {
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "display_name", "age_group", "role", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "display_name": { "type": "string" },
+        "age_group": {
+          "type": "string",
+          "enum": ["infant", "child", "teen", "adult", "older_adult", "unknown"]
+        },
+        "role": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "pet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "species", "count", "needs"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string" },
+        "species": { "type": "string" },
+        "count": { "type": "integer", "minimum": 1 },
+        "needs": { "type": "string" }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["person_id", "name", "severity", "notes"],
+      "properties": {
+        "person_id": { "type": "string" },
+        "name": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high", "critical", "unknown"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "medication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["person_id", "name", "dose", "schedule", "days_on_hand"],
+      "properties": {
+        "person_id": { "type": "string" },
+        "name": { "type": "string" },
+        "dose": { "type": "string" },
+        "schedule": { "type": "string" },
+        "days_on_hand": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "medical_equipment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["person_id", "name", "power_required", "backup_runtime_hours"],
+      "properties": {
+        "person_id": { "type": "string" },
+        "name": { "type": "string" },
+        "power_required": { "type": "boolean" },
+        "backup_runtime_hours": { "type": "number", "minimum": 0 }
+      }
+    },
+    "power_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reason", "priority"],
+      "properties": {
+        "name": { "type": "string" },
+        "reason": { "type": "string" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+      }
+    },
+    "power_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "capacity", "fuel_or_charge_notes"],
+      "properties": {
+        "type": { "type": "string" },
+        "capacity": { "type": "string" },
+        "fuel_or_charge_notes": { "type": "string" }
+      }
+    },
+    "critical_load": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "watts", "hours_per_day"],
+      "properties": {
+        "name": { "type": "string" },
+        "watts": { "type": "number", "minimum": 0 },
+        "hours_per_day": { "type": "number", "minimum": 0, "maximum": 24 }
+      }
+    },
+    "mobility_limitation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["person_id", "description", "evacuation_consideration"],
+      "properties": {
+        "person_id": { "type": "string" },
+        "description": { "type": "string" },
+        "evacuation_consideration": { "type": "string" }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "relationship", "methods", "priority"],
+      "properties": {
+        "name": { "type": "string" },
+        "relationship": { "type": "string" },
+        "methods": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "priority": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "communication_device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "owner", "power_source", "notes"],
+      "properties": {
+        "type": { "type": "string" },
+        "owner": { "type": "string" },
+        "power_source": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "rally_point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "address_or_description", "priority"],
+      "properties": {
+        "name": { "type": "string" },
+        "address_or_description": { "type": "string" },
+        "priority": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "preparedness_goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "target", "priority", "notes"],
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": ["water", "food", "medical", "power", "communications", "evacuation", "shelter", "training", "other"]
+        },
+        "target": { "type": "string" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

@@ -11,4 +11,4 @@
 | Future | GUIDE full platform service | Not started | Backlog epic E14 |
 | Future | GUIDE lightweight WebUI foundation | Complete with Warnings | `scripts/guide-webui.py`, `data/guide_webui/index.html`, `reports/guide_webui_auth_report.md` |
 | Future | Offline library UI and RAG | RAG critical path complete with warnings | Backlog epic E15; `reports/iiab_library_import_report.md`; `reports/rag_corpus_extraction_report.md`; `reports/rag_index_report.md`; `reports/rag_orchestration_report.md`; `reports/ask_library_ui_report.md`; `reports/rag_operations_report.md`; `tracker/critical_path.md` |
-| Future | GUIDE preparedness and operations platform | Vision captured | Backlog epic E16; `reports/guide_product_vision.md` |
+| Future | GUIDE preparedness and operations platform | Critical path active: T024 next | Backlog epic E16; `reports/guide_product_vision.md`; `reports/household_profile_schema_report.md` |

@@ -154,6 +154,10 @@ No passwords are hard-coded in this repository. For the lightweight GUIDE WebUI,
 
 HTTP Basic auth is not a TLS replacement. Keep LAN access on a trusted network unless a separate authenticated TLS reverse proxy is provided. For AnythingLLM or Open WebUI, complete the GUI's first-run admin or user setup before relying on LAN access.
 
+## GUIDE Household Profile
+
+GUIDE stores household preparedness profile data under `data/guide/profile`. The schema and example template are tracked in git; the local household profile JSON file is ignored so private household details stay on the USB. The lightweight GUIDE WebUI exposes authenticated `GET /api/profile` and `POST /api/profile` endpoints and includes a profile editor backed by that schema.
+
 ## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
 
 ```

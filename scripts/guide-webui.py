@@ -9,6 +9,7 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -18,6 +19,10 @@ STATIC_DIR = ROOT / "data" / "guide_webui"
 LIBRARY_DIR = ROOT / "library" / "iiab"
 CHROMA_DIR = ROOT / "data" / "chroma" / "library"
 PYTHON_PACKAGES = ROOT / "data" / "rag" / "python-packages"
+PROFILE_DIR = ROOT / "data" / "guide" / "profile"
+PROFILE_SCHEMA_PATH = PROFILE_DIR / "household_profile.schema.json"
+PROFILE_EXAMPLE_PATH = PROFILE_DIR / "household_profile.example.json"
+PROFILE_DATA_PATH = Path(os.environ.get("GUIDE_PROFILE_PATH") or PROFILE_DIR / "household_profile.json")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 RAG_COLLECTION = os.environ.get("GUIDE_RAG_COLLECTION", "guide_library")
 EMBED_MODEL = os.environ.get("GUIDE_EMBED_MODEL", "nomic-embed-text")
@@ -129,6 +134,83 @@ def index_status():
     return status
 
 
+def load_profile_schema():
+    return json.loads(PROFILE_SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def profile_template():
+    return json.loads(PROFILE_EXAMPLE_PATH.read_text(encoding="utf-8"))
+
+
+def profile_status():
+    return {
+        "schema": str(PROFILE_SCHEMA_PATH),
+        "example": str(PROFILE_EXAMPLE_PATH),
+        "path": str(PROFILE_DATA_PATH),
+        "exists": PROFILE_DATA_PATH.exists(),
+    }
+
+
+def load_profile():
+    if PROFILE_DATA_PATH.exists():
+        return json.loads(PROFILE_DATA_PATH.read_text(encoding="utf-8"))
+    return profile_template()
+
+
+def validate_profile(profile):
+    errors = []
+    if not isinstance(profile, dict):
+        return ["profile must be a JSON object"]
+    required = [
+        "schema_version",
+        "profile_type",
+        "household",
+        "people",
+        "pets",
+        "medical",
+        "power",
+        "mobility",
+        "communications",
+        "preparedness_goals",
+    ]
+    for key in required:
+        if key not in profile:
+            errors.append(f"missing required field: {key}")
+    if profile.get("schema_version") != "1.0.0":
+        errors.append("schema_version must be 1.0.0")
+    if profile.get("profile_type") not in ("household", "organization"):
+        errors.append("profile_type must be household or organization")
+    household = profile.get("household")
+    if isinstance(household, dict):
+        for key in ("name", "location_label", "primary_language", "planning_horizon_days"):
+            if key not in household:
+                errors.append(f"missing household field: {key}")
+        horizon = household.get("planning_horizon_days")
+        if not isinstance(horizon, int) or horizon < 1 or horizon > 365:
+            errors.append("household.planning_horizon_days must be an integer from 1 to 365")
+    elif "household" in profile:
+        errors.append("household must be an object")
+    for key in ("people", "pets", "preparedness_goals"):
+        if key in profile and not isinstance(profile[key], list):
+            errors.append(f"{key} must be an array")
+    for key in ("medical", "power", "mobility", "communications"):
+        if key in profile and not isinstance(profile[key], dict):
+            errors.append(f"{key} must be an object")
+    return errors
+
+
+def save_profile(profile):
+    errors = validate_profile(profile)
+    if errors:
+        return errors
+    profile["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    PROFILE_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = PROFILE_DATA_PATH.with_suffix(PROFILE_DATA_PATH.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(profile, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp_path.replace(PROFILE_DATA_PATH)
+    return []
+
+
 def runtime_status():
     return {
         "ollama_url": OLLAMA_URL,
@@ -139,6 +221,7 @@ def runtime_status():
             "default_top_k": DEFAULT_TOP_K,
             "max_top_k": MAX_TOP_K,
         },
+        "profile": profile_status(),
         "auth": {
             "required_by_policy": AUTH_REQUIRED,
             "enforced_by_webui": AUTH_ENFORCED,
@@ -402,6 +485,19 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(500, {"error": str(exc)})
             return
 
+        if self.path == "/api/profile":
+            try:
+                profile = load_profile()
+                self.send_json(200, {
+                    "profile": profile,
+                    "schema": load_profile_schema(),
+                    "status": profile_status(),
+                    "validation_errors": validate_profile(profile),
+                })
+            except Exception as exc:
+                self.send_json(500, {"error": str(exc)})
+            return
+
         if self.path == "/library" or self.path.startswith("/library/"):
             requested = self.path.removeprefix("/library").lstrip("/")
             target = safe_child(LIBRARY_DIR, requested)
@@ -439,13 +535,24 @@ class Handler(BaseHTTPRequestHandler):
         if not self.require_auth():
             return
 
-        if self.path not in ("/api/chat", "/api/ask-library"):
+        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile"):
             self.send_error(404)
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
             incoming = json.loads(self.rfile.read(length).decode("utf-8"))
-            if self.path == "/api/ask-library":
+            if self.path == "/api/profile":
+                profile = incoming.get("profile") if isinstance(incoming, dict) and "profile" in incoming else incoming
+                errors = save_profile(profile)
+                if errors:
+                    self.send_json(400, {"error": "profile validation failed", "validation_errors": errors})
+                    return
+                self.send_json(200, {
+                    "profile": load_profile(),
+                    "status": profile_status(),
+                    "validation_errors": [],
+                })
+            elif self.path == "/api/ask-library":
                 question = (incoming.get("question") or incoming.get("message") or "").strip()
                 if not question:
                     self.send_json(400, {"error": "question is required"})

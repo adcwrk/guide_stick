@@ -19,6 +19,9 @@ data/rag/corpus/*
 !data/rag/corpus/.gitkeep
 data/rag/python-packages/
 data/chroma/library/
+data/guide/profile/household_profile.json
+data/guide/profile/*.local.json
+data/guide/profile/*.tmp
 tools/uv/
 tools/python/
 tools/zim-tools/

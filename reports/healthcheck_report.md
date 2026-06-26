@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-26T06:23:14Z
+Generated: 2026-06-26T06:46:15Z
 
 Runtime: Linux/NUC
 
@@ -8,7 +8,7 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 37
+- Passed: 39
 - Warnings: 2
 - Failed: 0
 
@@ -22,6 +22,7 @@ Summary:
 | PASS | Required folder: reports | present |
 | PASS | Required folder: data/chroma | present |
 | PASS | Required folder: data/rag/corpus | present |
+| PASS | Required folder: data/guide/profile | present |
 | PASS | Required folder: data/anythingllm | present |
 | PASS | Required folder: data/openwebui | present |
 | PASS | Required folder: scripts | present |
@@ -41,6 +42,7 @@ Summary:
 | PASS | ChromaDB path writable | /mnt/usb/GUIDE/data/chroma |
 | PASS | RAG corpus manifest | 56136 rows |
 | PASS | RAG Chroma index | 213850 indexed chunks |
+| PASS | GUIDE profile schema | /mnt/usb/GUIDE/data/guide/profile/household_profile.schema.json |
 | PASS | zimdump installed | zim-tools 3.7.0 |
 | PASS | RAG operations checks | complete_with_warnings: 15 pass, 2 warn, 0 fail |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
@@ -55,4 +57,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T062311Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T064612Z.log`

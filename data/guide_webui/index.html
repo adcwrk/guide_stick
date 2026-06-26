@@ -28,6 +28,7 @@
     .link:hover { border-color: #3f83f8; }
     .muted { color: #a8b3bd; }
     .mini { font-size: 13px; }
+    .profile-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .citations { margin-top: 12px; display: grid; gap: 8px; }
     .citation { border-left: 3px solid #3f83f8; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .citation a { color: #86b7ff; text-decoration: none; overflow-wrap: anywhere; }
@@ -64,6 +65,15 @@
       <div id="libraryLinks" class="grid" style="margin-top: 12px;"></div>
       <div id="zimList" class="status" style="margin-top: 12px;"></div>
     </section>
+    <section class="panel">
+      <h2 style="margin-top: 0; font-size: 18px;">Household Profile</h2>
+      <div id="profileStatus" class="status">Checking profile...</div>
+      <textarea id="profileEditor" class="profile-editor" spellcheck="false"></textarea>
+      <div class="controls">
+        <button id="loadProfile">Load Profile</button>
+        <button id="saveProfile">Save Profile</button>
+      </div>
+    </section>
     <section class="panel status" id="securityPanel">
       <span id="securityStatus">Checking security policy...</span>
     </section>
@@ -87,6 +97,10 @@
     const libraryStatus = document.getElementById('libraryStatus');
     const libraryLinks = document.getElementById('libraryLinks');
     const zimList = document.getElementById('zimList');
+    const profileStatus = document.getElementById('profileStatus');
+    const profileEditor = document.getElementById('profileEditor');
+    const loadProfileBtn = document.getElementById('loadProfile');
+    const saveProfileBtn = document.getElementById('saveProfile');
     const appState = { modelsReady: false, ragReady: false, busy: false };
 
     function setBusy(busy) {
@@ -144,6 +158,51 @@
         setTextStatus(ragStatusEl, `Library index unavailable: ${err.message}. Send will use normal chat.`, 'warn mini');
       } finally {
         askLibraryBtn.disabled = appState.busy || !appState.ragReady;
+      }
+    }
+
+    async function loadProfile() {
+      loadProfileBtn.disabled = true;
+      saveProfileBtn.disabled = true;
+      setTextStatus(profileStatus, 'Loading profile...', 'status');
+      try {
+        const res = await fetch('/api/profile');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Profile request failed');
+        profileEditor.value = JSON.stringify(data.profile, null, 2);
+        const state = data.status?.exists ? 'saved profile loaded' : 'new profile template loaded';
+        setTextStatus(profileStatus, `${state}: ${data.status?.path || ''}`, data.validation_errors?.length ? 'warn' : 'ok');
+      } catch (err) {
+        setTextStatus(profileStatus, `Profile unavailable: ${err.message}`, 'warn');
+      } finally {
+        loadProfileBtn.disabled = false;
+        saveProfileBtn.disabled = false;
+      }
+    }
+
+    async function saveProfile() {
+      loadProfileBtn.disabled = true;
+      saveProfileBtn.disabled = true;
+      setTextStatus(profileStatus, 'Saving profile...', 'status');
+      try {
+        const profile = JSON.parse(profileEditor.value);
+        const res = await fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const errors = (data.validation_errors || [data.error || 'Save failed']).join('; ');
+          throw new Error(errors);
+        }
+        profileEditor.value = JSON.stringify(data.profile, null, 2);
+        setTextStatus(profileStatus, `profile saved: ${data.status?.path || ''}`, 'ok');
+      } catch (err) {
+        setTextStatus(profileStatus, `Profile save failed: ${err.message}`, 'warn');
+      } finally {
+        loadProfileBtn.disabled = false;
+        saveProfileBtn.disabled = false;
       }
     }
 
@@ -299,10 +358,13 @@
     document.getElementById('refresh').addEventListener('click', loadModels);
     sendBtn.addEventListener('click', sendMessage);
     askLibraryBtn.addEventListener('click', askLibrary);
+    loadProfileBtn.addEventListener('click', loadProfile);
+    saveProfileBtn.addEventListener('click', saveProfile);
     loadRuntimeStatus();
     loadModels();
     loadRagStatus();
     loadLibrary();
+    loadProfile();
   </script>
 </body>
 </html>

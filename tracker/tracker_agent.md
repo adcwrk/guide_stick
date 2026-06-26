@@ -45,7 +45,8 @@ As of this tracker version:
 5. T020 is complete with warnings.
 6. T021 is complete with warnings.
 7. T011 is complete with warnings.
-8. T023 is the first incomplete critical-path task because the security gate is now satisfied.
+8. T023 is complete with warnings.
+9. T024 is the first incomplete critical-path task.
 
 ## Agent Prompt
 

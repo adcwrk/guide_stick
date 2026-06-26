@@ -41,6 +41,16 @@
       "notes": "Uses GUIDE_WEBUI_USER plus GUIDE_WEBUI_PASSWORD or GUIDE_WEBUI_PASSWORD_FILE. If neither password source is set, a local config/guide-webui.password file is generated on first run."
     },
     {
+      "name": "guide-profile",
+      "role": "household_preparedness_profile_store",
+      "default_port": null,
+      "default_bind": "local_storage",
+      "remote_default": false,
+      "data_path": "data/guide/profile",
+      "auth": "protected_by_guide_webui_auth",
+      "notes": "Stores the JSON Schema, example template, and local household_profile.json data file used by GUIDE preparedness workflows."
+    },
+    {
       "name": "chromadb",
       "role": "vector_store",
       "default_port": null,

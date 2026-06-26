@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "profile_type": "household",
+  "updated_at": "2026-06-26T00:00:00Z",
+  "household": {
+    "name": "",
+    "location_label": "",
+    "primary_language": "en",
+    "planning_horizon_days": 14,
+    "home_type": "unknown",
+    "notes": ""
+  },
+  "people": [],
+  "pets": [],
+  "medical": {
+    "conditions": [],
+    "medications": [],
+    "equipment": [],
+    "care_notes": ""
+  },
+  "power": {
+    "dependencies": [],
+    "backup_sources": [],
+    "critical_loads": []
+  },
+  "mobility": {
+    "limitations": [],
+    "assistive_devices": [],
+    "transportation_notes": ""
+  },
+  "communications": {
+    "contacts": [],
+    "devices": [],
+    "rally_points": []
+  },
+  "preparedness_goals": []
+}
