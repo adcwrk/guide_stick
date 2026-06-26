@@ -14,8 +14,8 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 4 | T028 Pull `nomic-embed-text` | Complete | Required to generate embeddings offline. |
 | 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; USB-local `zimdump` is installed, and native ZIM article extraction is deferred as a targeted size-guarded job. |
 | 6 | T019 Build ChromaDB library index | Complete | ChromaDB `guide_library` contains 213,850 indexed chunks for all 56,136 corpus documents. |
-| 7 | T029 Add RAG orchestration endpoint | Backlog | Next critical task: connect retrieval, prompt construction, and Ollama answer generation. |
-| 8 | T020 Add Ask Library UI | Backlog | Exposes source-grounded RAG to users. |
+| 7 | T029 Add RAG orchestration endpoint | Complete with Warnings | `/api/ask-library` retrieves Chroma chunks, builds source context, asks Ollama, and returns cited answers; answer quality still depends on corpus coverage and future native ZIM extraction. |
+| 8 | T020 Add Ask Library UI | In Progress | Basic WebUI button and citation rendering exist; finish UX fallback/status handling after the auth/security gate is addressed. |
 | 9 | T021 Add RAG operations checks | Backlog | Makes the index supportable and auditable. |
 
 ## Phase Gates
@@ -30,9 +30,9 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T029: Add RAG orchestration endpoint.
+T020: Add Ask Library UI.
 
-Reason: T019 is complete. The next blocker is exposing the completed ChromaDB index through an `/api/ask-library` endpoint that retrieves chunks, asks Ollama, and returns cited answers.
+Reason: T029 is complete with warnings. The next blocker is making the source-grounded Ask Library flow production-ready in the WebUI while accounting for the still-open authentication/security work.
 
 ## Parallel Work That Does Not Block RAG
 
@@ -48,4 +48,5 @@ Reason: T019 is complete. The next blocker is exposing the completed ChromaDB in
 - T017 is complete with warnings because the selected ZIM payload copied successfully, but rsync returned code 23 due to protected Matomo/Nextcloud/service runtime files outside the selected ZIM payload.
 - T018 is complete with warnings because 56,136 HTML/text corpus documents were generated with zero extraction failures, but full native ZIM article extraction remains a deliberate targeted job. USB-local `zimdump` is installed; large dumps are guarded by `ZIM_MAX_BYTES`.
 - T019 is complete: 56,136 corpus documents produced 213,850 indexed ChromaDB chunks with 0 indexing errors.
+- T029 is complete with warnings: `/api/ask-library` works against the completed Chroma index and returns cited answers, but retrieval quality is only as good as the current HTML/text corpus. Native ZIM article extraction remains deferred.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.

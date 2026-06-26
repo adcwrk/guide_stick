@@ -2,6 +2,8 @@
 import json
 import mimetypes
 import os
+import subprocess
+import sys
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -11,7 +13,44 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = ROOT / "data" / "guide_webui"
 LIBRARY_DIR = ROOT / "library" / "iiab"
+CHROMA_DIR = ROOT / "data" / "chroma" / "library"
+PYTHON_PACKAGES = ROOT / "data" / "rag" / "python-packages"
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
+RAG_COLLECTION = os.environ.get("GUIDE_RAG_COLLECTION", "guide_library")
+EMBED_MODEL = os.environ.get("GUIDE_EMBED_MODEL", "nomic-embed-text")
+ASK_MODEL = os.environ.get("GUIDE_ASK_MODEL", "qwen2.5:7b")
+DEFAULT_TOP_K = int(os.environ.get("GUIDE_RAG_TOP_K", "6"))
+MAX_TOP_K = int(os.environ.get("GUIDE_RAG_MAX_TOP_K", "12"))
+MAX_CONTEXT_CHARS = int(os.environ.get("GUIDE_RAG_MAX_CONTEXT_CHARS", "14000"))
+
+
+def find_rag_python():
+    configured = os.environ.get("GUIDE_RAG_PYTHON")
+    if configured and Path(configured).exists():
+        return configured
+    uv = ROOT / "tools" / "uv" / "bin" / "uv"
+    if uv.exists():
+        try:
+            found = subprocess.check_output([str(uv), "python", "find", "3.12"], text=True).strip()
+            if found:
+                return found
+        except Exception:
+            pass
+    fallback = Path("/home/guide/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12")
+    if fallback.exists():
+        return str(fallback)
+    return None
+
+
+if PYTHON_PACKAGES.exists() and sys.version_info[:2] != (3, 12) and os.environ.get("GUIDE_WEBUI_REEXEC") != "1":
+    rag_python = find_rag_python()
+    if rag_python:
+        env = os.environ.copy()
+        env["GUIDE_WEBUI_REEXEC"] = "1"
+        os.execvpe(rag_python, [rag_python, str(Path(__file__).resolve())], env)
+
+if PYTHON_PACKAGES.exists():
+    sys.path.insert(0, str(PYTHON_PACKAGES))
 
 
 def ollama_json(path, payload=None):
@@ -23,6 +62,148 @@ def ollama_json(path, payload=None):
     req = urllib.request.Request(f"{OLLAMA_URL}{path}", data=data, headers=headers)
     with urllib.request.urlopen(req, timeout=120) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+
+def ollama_embed(text):
+    body = ollama_json("/api/embed", {"model": EMBED_MODEL, "input": [text]})
+    embeddings = body.get("embeddings") or []
+    if not embeddings:
+        raise RuntimeError("Ollama did not return an embedding")
+    return embeddings[0]
+
+
+def chroma_collection():
+    try:
+        import chromadb
+    except Exception as exc:
+        raise RuntimeError(f"chromadb is not available: {exc}") from exc
+    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+    return client.get_collection(RAG_COLLECTION)
+
+
+def index_status():
+    manifest_path = CHROMA_DIR / "guide_index_manifest.json"
+    status = {
+        "available": CHROMA_DIR.exists(),
+        "collection": RAG_COLLECTION,
+        "path": str(CHROMA_DIR),
+        "index_manifest": str(manifest_path),
+    }
+    if manifest_path.exists():
+        try:
+            status.update(json.loads(manifest_path.read_text(encoding="utf-8")))
+        except Exception as exc:
+            status["manifest_error"] = str(exc)
+    return status
+
+
+def clamp_top_k(value):
+    try:
+        top_k = int(value)
+    except (TypeError, ValueError):
+        top_k = DEFAULT_TOP_K
+    return max(1, min(top_k, MAX_TOP_K))
+
+
+def retrieve_library_chunks(question, top_k):
+    collection = chroma_collection()
+    embedding = ollama_embed(question)
+    result = collection.query(
+        query_embeddings=[embedding],
+        n_results=top_k,
+        include=["documents", "metadatas", "distances"],
+    )
+    ids = result.get("ids", [[]])[0]
+    docs = result.get("documents", [[]])[0]
+    metas = result.get("metadatas", [[]])[0]
+    distances = result.get("distances", [[]])[0]
+    chunks = []
+    for idx, chunk_id in enumerate(ids):
+        meta = metas[idx] if idx < len(metas) and metas[idx] else {}
+        doc = docs[idx] if idx < len(docs) else ""
+        distance = distances[idx] if idx < len(distances) else None
+        chunks.append({
+            "id": chunk_id,
+            "rank": idx + 1,
+            "text": doc,
+            "distance": distance,
+            "title": meta.get("title") or meta.get("library_path") or chunk_id,
+            "library_path": meta.get("library_path") or "",
+            "library_url": meta.get("library_url") or "",
+            "source_type": meta.get("source_type") or "",
+            "chunk_index": meta.get("chunk_index"),
+        })
+    return chunks
+
+
+def build_rag_prompt(question, chunks):
+    context_parts = []
+    total = 0
+    for chunk in chunks:
+        label = f"[{chunk['rank']}] {chunk['title']}"
+        if chunk["library_url"]:
+            label += f" ({chunk['library_url']})"
+        text = chunk["text"].strip()
+        remaining = MAX_CONTEXT_CHARS - total
+        if remaining <= 0:
+            break
+        if len(text) > remaining:
+            text = text[:remaining].rsplit(" ", 1)[0]
+        block = f"{label}\n{text}"
+        context_parts.append(block)
+        total += len(block)
+    context = "\n\n".join(context_parts)
+    return (
+        "You are GUIDE, an offline emergency knowledge assistant. "
+        "Answer using only the provided library context. "
+        "If the context is insufficient, say what is missing. "
+        "Cite sources inline using bracket numbers like [1] or [2].\n\n"
+        f"Question:\n{question}\n\nLibrary context:\n{context}"
+    )
+
+
+def ask_library(question, model, top_k):
+    chunks = retrieve_library_chunks(question, top_k)
+    if not chunks:
+        return {
+            "answer": "No matching library chunks were found.",
+            "citations": [],
+            "retrieved_chunks": [],
+            "model": model,
+            "embedding_model": EMBED_MODEL,
+            "index_status": index_status(),
+        }
+    prompt = build_rag_prompt(question, chunks)
+    response = ollama_json("/api/chat", {
+        "model": model,
+        "stream": False,
+        "messages": [
+            {"role": "system", "content": "You answer from retrieved offline library context and cite bracketed source numbers."},
+            {"role": "user", "content": prompt},
+        ],
+    })
+    citations = []
+    for chunk in chunks:
+        citations.append({
+            "rank": chunk["rank"],
+            "title": chunk["title"],
+            "library_url": chunk["library_url"],
+            "library_path": chunk["library_path"],
+            "chunk_index": chunk["chunk_index"],
+            "distance": chunk["distance"],
+        })
+    return {
+        "answer": response.get("message", {}).get("content", ""),
+        "citations": citations,
+        "retrieved_chunks": chunks,
+        "risk_notes": [
+            "Answer is generated from retrieved local library chunks only.",
+            "If retrieved citations are off-topic, improve or rebuild the corpus/index before relying on the answer.",
+        ],
+        "model": model,
+        "embedding_model": EMBED_MODEL,
+        "index_status": index_status(),
+    }
 
 
 def safe_child(base, requested):
@@ -111,6 +292,18 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, library_summary())
             return
 
+        if self.path == "/api/library-index":
+            try:
+                status = index_status()
+                try:
+                    status["collection_count"] = chroma_collection().count()
+                except Exception as exc:
+                    status["collection_error"] = str(exc)
+                self.send_json(200, status)
+            except Exception as exc:
+                self.send_json(500, {"error": str(exc)})
+            return
+
         if self.path == "/library" or self.path.startswith("/library/"):
             requested = self.path.removeprefix("/library").lstrip("/")
             target = safe_child(LIBRARY_DIR, requested)
@@ -145,23 +338,32 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def do_POST(self):
-        if self.path != "/api/chat":
+        if self.path not in ("/api/chat", "/api/ask-library"):
             self.send_error(404)
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
             incoming = json.loads(self.rfile.read(length).decode("utf-8"))
-            model = incoming.get("model") or "llama3.2:3b"
-            message = incoming.get("message", "").strip()
-            if not message:
-                self.send_json(400, {"error": "message is required"})
-                return
-            payload = {
-                "model": model,
-                "stream": False,
-                "messages": [{"role": "user", "content": message}],
-            }
-            self.send_json(200, ollama_json("/api/chat", payload))
+            if self.path == "/api/ask-library":
+                question = (incoming.get("question") or incoming.get("message") or "").strip()
+                if not question:
+                    self.send_json(400, {"error": "question is required"})
+                    return
+                model = incoming.get("model") or ASK_MODEL
+                top_k = clamp_top_k(incoming.get("top_k"))
+                self.send_json(200, ask_library(question, model, top_k))
+            else:
+                model = incoming.get("model") or "llama3.2:3b"
+                message = incoming.get("message", "").strip()
+                if not message:
+                    self.send_json(400, {"error": "message is required"})
+                    return
+                payload = {
+                    "model": model,
+                    "stream": False,
+                    "messages": [{"role": "user", "content": message}],
+                }
+                self.send_json(200, ollama_json("/api/chat", payload))
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", "replace")
             self.send_json(exc.code, {"error": detail})

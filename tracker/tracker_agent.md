@@ -39,10 +39,10 @@ The agent should produce:
 As of this tracker version:
 
 1. T028 is complete.
-2. T018 is the first incomplete critical-path task.
-3. After T018, proceed to T019.
-4. After T019, proceed to T029.
-5. After T029, proceed to T020.
+2. T018 is complete with warnings.
+3. T019 is complete.
+4. T029 is complete with warnings.
+5. T020 is the first incomplete critical-path task.
 6. After T020, proceed to T021.
 
 ## Agent Prompt
