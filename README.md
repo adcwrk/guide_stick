@@ -166,6 +166,10 @@ GUIDE stores preparedness inventory data under `data/guide/inventory`. The schem
 
 GUIDE stores incident records and operational timelines under `data/guide/incidents`. The schema and example template are tracked in git; the local incidents JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/incidents` and `POST /api/incidents` endpoints, summarizes incident status and severity counts, and displays the latest timeline events for active operations.
 
+## GUIDE Communications Center
+
+GUIDE stores communications planning data under `data/guide/communications`. The schema and example template are tracked in git; the local communications JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/communications` and `POST /api/communications` endpoints for contacts, communications channels, message templates, and message logs, including future-ready Meshtastic channel planning.
+
 ## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
 
 ```

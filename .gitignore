@@ -28,6 +28,9 @@ data/guide/inventory/*.tmp
 data/guide/incidents/incidents.json
 data/guide/incidents/*.local.json
 data/guide/incidents/*.tmp
+data/guide/communications/communications.json
+data/guide/communications/*.local.json
+data/guide/communications/*.tmp
 tools/uv/
 tools/python/
 tools/zim-tools/

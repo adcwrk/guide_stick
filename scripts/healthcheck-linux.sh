@@ -71,7 +71,7 @@ else
   record FAIL "USB identity" "see $LOG_FILE"
 fi
 
-for dir in config documents logs backups reports data/chroma data/rag/corpus data/guide/profile data/guide/inventory data/guide/incidents data/anythingllm data/openwebui scripts ollama; do
+for dir in config documents logs backups reports data/chroma data/rag/corpus data/guide/profile data/guide/inventory data/guide/incidents data/guide/communications data/anythingllm data/openwebui scripts ollama; do
   [ -d "$USB_DIR/$dir" ] && record PASS "Required folder: $dir" "present" || record FAIL "Required folder: $dir" "missing"
 done
 
@@ -88,6 +88,7 @@ touch "$USB_DIR/data/chroma/.healthcheck_write" 2>/dev/null && rm -f "$USB_DIR/d
 [ -s "$USB_DIR/data/guide/profile/household_profile.schema.json" ] && record PASS "GUIDE profile schema" "$USB_DIR/data/guide/profile/household_profile.schema.json" || record FAIL "GUIDE profile schema" "missing"
 [ -s "$USB_DIR/data/guide/inventory/inventory.schema.json" ] && record PASS "GUIDE inventory schema" "$USB_DIR/data/guide/inventory/inventory.schema.json" || record FAIL "GUIDE inventory schema" "missing"
 [ -s "$USB_DIR/data/guide/incidents/incidents.schema.json" ] && record PASS "GUIDE incident schema" "$USB_DIR/data/guide/incidents/incidents.schema.json" || record FAIL "GUIDE incident schema" "missing"
+[ -s "$USB_DIR/data/guide/communications/communications.schema.json" ] && record PASS "GUIDE communications schema" "$USB_DIR/data/guide/communications/communications.schema.json" || record FAIL "GUIDE communications schema" "missing"
 [ -x "$USB_DIR/tools/zim-tools/zimdump" ] && record PASS "zimdump installed" "$("$USB_DIR/tools/zim-tools/zimdump" --version | head -n 1)" || record WARN "zimdump installed" "not found under tools/zim-tools"
 
 if "$USB_DIR/scripts/check-rag-ops.sh" >>"$LOG_FILE" 2>&1; then

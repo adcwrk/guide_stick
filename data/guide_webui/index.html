@@ -31,9 +31,11 @@
     .profile-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .inventory-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .incident-editor { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    .communications-editor { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .gap { border-left: 3px solid #ffd479; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .gap.critical { border-left-color: #ff6b6b; }
     .timeline { border-left: 3px solid #7ee787; padding: 8px 10px; background: #10161d; border-radius: 4px; }
+    .message-log { border-left: 3px solid #86b7ff; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .citations { margin-top: 12px; display: grid; gap: 8px; }
     .citation { border-left: 3px solid #3f83f8; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .citation a { color: #86b7ff; text-decoration: none; overflow-wrap: anywhere; }
@@ -99,6 +101,16 @@
         <button id="saveIncidents">Save Incidents</button>
       </div>
     </section>
+    <section class="panel">
+      <h2 style="margin-top: 0; font-size: 18px;">Communications Center</h2>
+      <div id="communicationsStatus" class="status">Checking communications plan...</div>
+      <div id="communicationsSummary" class="citations"></div>
+      <textarea id="communicationsEditor" class="communications-editor" spellcheck="false"></textarea>
+      <div class="controls">
+        <button id="loadCommunications">Load Communications</button>
+        <button id="saveCommunications">Save Communications</button>
+      </div>
+    </section>
     <section class="panel status" id="securityPanel">
       <span id="securityStatus">Checking security policy...</span>
     </section>
@@ -136,6 +148,11 @@
     const incidentEditor = document.getElementById('incidentEditor');
     const loadIncidentsBtn = document.getElementById('loadIncidents');
     const saveIncidentsBtn = document.getElementById('saveIncidents');
+    const communicationsStatus = document.getElementById('communicationsStatus');
+    const communicationsSummary = document.getElementById('communicationsSummary');
+    const communicationsEditor = document.getElementById('communicationsEditor');
+    const loadCommunicationsBtn = document.getElementById('loadCommunications');
+    const saveCommunicationsBtn = document.getElementById('saveCommunications');
     const appState = { modelsReady: false, ragReady: false, busy: false };
 
     function setBusy(busy) {
@@ -384,6 +401,78 @@
       }
     }
 
+    function renderCommunicationsSummary(summary) {
+      communicationsSummary.innerHTML = '';
+      if (!summary) return;
+      const overview = document.createElement('div');
+      overview.className = 'citation';
+      const channelStatus = Object.entries(summary.by_channel_status || {}).map(([key, value]) => `${key}: ${value}`).join(', ') || 'none';
+      const deliveryStatus = Object.entries(summary.by_delivery_status || {}).map(([key, value]) => `${key}: ${value}`).join(', ') || 'none';
+      overview.textContent = `Contacts: ${summary.contacts || 0}; channels: ${summary.channels || 0}; templates: ${summary.message_templates || 0}; log entries: ${summary.message_log_entries || 0}; channels: ${channelStatus}; delivery: ${deliveryStatus}`;
+      communicationsSummary.appendChild(overview);
+      const messages = summary.recent_messages || [];
+      if (!messages.length) {
+        const empty = document.createElement('div');
+        empty.className = 'citation';
+        empty.textContent = 'No message log entries recorded.';
+        communicationsSummary.appendChild(empty);
+        return;
+      }
+      for (const message of messages) {
+        const item = document.createElement('div');
+        item.className = 'message-log';
+        item.textContent = `${message.timestamp || 'no timestamp'} ${message.direction || 'message'} via ${message.channel_id || 'unknown channel'} (${message.delivery_status || 'unknown'}): ${message.message || ''}`;
+        communicationsSummary.appendChild(item);
+      }
+    }
+
+    async function loadCommunications() {
+      loadCommunicationsBtn.disabled = true;
+      saveCommunicationsBtn.disabled = true;
+      setTextStatus(communicationsStatus, 'Loading communications plan...', 'status');
+      try {
+        const res = await fetch('/api/communications');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Communications request failed');
+        communicationsEditor.value = JSON.stringify(data.communications, null, 2);
+        renderCommunicationsSummary(data.summary);
+        const state = data.status?.exists ? 'saved communications plan loaded' : 'new communications template loaded';
+        setTextStatus(communicationsStatus, `${state}: ${data.status?.path || ''}`, data.validation_errors?.length ? 'warn' : 'ok');
+      } catch (err) {
+        setTextStatus(communicationsStatus, `Communications unavailable: ${err.message}`, 'warn');
+      } finally {
+        loadCommunicationsBtn.disabled = false;
+        saveCommunicationsBtn.disabled = false;
+      }
+    }
+
+    async function saveCommunications() {
+      loadCommunicationsBtn.disabled = true;
+      saveCommunicationsBtn.disabled = true;
+      setTextStatus(communicationsStatus, 'Saving communications plan...', 'status');
+      try {
+        const communications = JSON.parse(communicationsEditor.value);
+        const res = await fetch('/api/communications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ communications })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const errors = (data.validation_errors || [data.error || 'Save failed']).join('; ');
+          throw new Error(errors);
+        }
+        communicationsEditor.value = JSON.stringify(data.communications, null, 2);
+        renderCommunicationsSummary(data.summary);
+        setTextStatus(communicationsStatus, `communications plan saved: ${data.status?.path || ''}`, 'ok');
+      } catch (err) {
+        setTextStatus(communicationsStatus, `Communications save failed: ${err.message}`, 'warn');
+      } finally {
+        loadCommunicationsBtn.disabled = false;
+        saveCommunicationsBtn.disabled = false;
+      }
+    }
+
     async function loadModels() {
       statusEl.textContent = 'Checking Ollama...';
       modelSelect.innerHTML = '';
@@ -542,6 +631,8 @@
     saveInventoryBtn.addEventListener('click', saveInventory);
     loadIncidentsBtn.addEventListener('click', loadIncidents);
     saveIncidentsBtn.addEventListener('click', saveIncidents);
+    loadCommunicationsBtn.addEventListener('click', loadCommunications);
+    saveCommunicationsBtn.addEventListener('click', saveCommunications);
     loadRuntimeStatus();
     loadModels();
     loadRagStatus();
@@ -549,6 +640,7 @@
     loadProfile();
     loadInventory();
     loadIncidents();
+    loadCommunications();
   </script>
 </body>
 </html>

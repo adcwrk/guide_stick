@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-06-26T00:00:00Z",
+  "contacts": [
+    {
+      "id": "contact_001",
+      "name": "Household lead",
+      "role": "Primary coordinator",
+      "priority": "primary",
+      "methods": [
+        {
+          "type": "voice",
+          "value": "",
+          "preferred": true,
+          "notes": ""
+        }
+      ],
+      "notes": ""
+    }
+  ],
+  "channels": [
+    {
+      "id": "channel_001",
+      "name": "Primary phone tree",
+      "channel_type": "phone_tree",
+      "frequency": "",
+      "protocol": "Call primary contacts first, then send SMS if voice fails.",
+      "coverage": "Household and local support contacts",
+      "status": "unknown",
+      "notes": ""
+    },
+    {
+      "id": "channel_002",
+      "name": "Meshtastic local mesh",
+      "channel_type": "meshtastic",
+      "frequency": "",
+      "protocol": "Use short status updates and request acknowledgements.",
+      "coverage": "Local mesh nodes where available",
+      "status": "unknown",
+      "notes": ""
+    }
+  ],
+  "message_templates": [
+    {
+      "id": "template_001",
+      "title": "Status check",
+      "scenario": "general",
+      "priority": "important",
+      "audience": "household contacts",
+      "channel_type": "sms",
+      "body": "GUIDE status check: Are you safe? Reply SAFE, NEED HELP, or UNAVAILABLE. Location: {{location}}.",
+      "variables": ["location"],
+      "source_citations": [],
+      "notes": ""
+    }
+  ],
+  "message_log": [
+    {
+      "id": "log_001",
+      "timestamp": "2026-06-26T00:00:00Z",
+      "direction": "internal",
+      "channel_id": "channel_001",
+      "contact_ids": ["contact_001"],
+      "message_template_id": "template_001",
+      "message": "Communications plan initialized.",
+      "delivery_status": "drafted",
+      "incident_id": "",
+      "operator": "",
+      "notes": ""
+    }
+  ],
+  "notes": ""
+}

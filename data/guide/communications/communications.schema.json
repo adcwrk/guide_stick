@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guide.local/schemas/communications.schema.json",
+  "title": "GUIDE Communications Center",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at", "contacts", "channels", "message_templates", "message_log", "notes"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "contacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contact" }
+    },
+    "channels": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/channel" }
+    },
+    "message_templates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/message_template" }
+    },
+    "message_log": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/message_log_entry" }
+    },
+    "notes": { "type": "string" }
+  },
+  "$defs": {
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "role", "priority", "methods", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "priority": { "type": "string", "enum": ["primary", "secondary", "monitor", "external"] },
+        "methods": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contact_method" }
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "contact_method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value", "preferred", "notes"],
+      "properties": {
+        "type": { "type": "string", "enum": ["voice", "sms", "email", "radio", "meshtastic", "in_person", "other"] },
+        "value": { "type": "string" },
+        "preferred": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "channel_type", "frequency", "protocol", "coverage", "status", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string" },
+        "channel_type": {
+          "type": "string",
+          "enum": ["phone_tree", "sms", "email", "gmrs", "frs", "ham", "meshtastic", "runner", "in_person", "other"]
+        },
+        "frequency": { "type": "string" },
+        "protocol": { "type": "string" },
+        "coverage": { "type": "string" },
+        "status": { "type": "string", "enum": ["available", "limited", "down", "unknown"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "message_template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "scenario", "priority", "audience", "channel_type", "body", "variables", "source_citations", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "title": { "type": "string" },
+        "scenario": { "type": "string" },
+        "priority": { "type": "string", "enum": ["routine", "important", "urgent", "emergency"] },
+        "audience": { "type": "string" },
+        "channel_type": { "type": "string" },
+        "body": { "type": "string" },
+        "variables": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "source_citations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "message_log_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "timestamp", "direction", "channel_id", "contact_ids", "message_template_id", "message", "delivery_status", "incident_id", "operator", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "direction": { "type": "string", "enum": ["incoming", "outgoing", "internal"] },
+        "channel_id": { "type": "string" },
+        "contact_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "message_template_id": { "type": "string" },
+        "message": { "type": "string" },
+        "delivery_status": { "type": "string", "enum": ["drafted", "sent", "delivered", "acknowledged", "failed", "received", "unknown"] },
+        "incident_id": { "type": "string" },
+        "operator": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

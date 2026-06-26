@@ -20,6 +20,7 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 10 | T023 Define household preparedness profile schema | Complete with Warnings | Establishes the household context used by preparedness and operations workflows. |
 | 11 | T024 Define preparedness inventory schema | Complete with Warnings | Adds local supplies data and gap calculations used during incidents. |
 | 12 | T025 Define incident records and operational timeline | Complete with Warnings | Adds incident status, resources, documents, recommendations, and timeline events under authenticated WebUI/API control. |
+| 13 | T026 Define communications center schema and templates | Complete with Warnings | Adds contacts, channels, message templates, and message logs for offline operations. |
 
 ## Phase Gates
 
@@ -33,13 +34,12 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T026: Define communications center schema and templates.
+T027: Decide map import/viewer strategy.
 
-Reason: T025 is complete with warnings. The next GUIDE operations blocker is a communications center data path for message templates, contact/radio planning, and offline comms logs.
+Reason: T026 is complete with warnings. The next GUIDE operations blocker is offline situational awareness for hazards, resources, shelters, hospitals, routes, and communications infrastructure.
 
 ## Parallel Work That Does Not Block RAG
 
-- T026: Define communications center schema and templates.
 - T027: Decide map import/viewer strategy.
 
 ## Deferred or Warning Items
@@ -54,4 +54,5 @@ Reason: T025 is complete with warnings. The next GUIDE operations blocker is a c
 - T023 is complete with warnings: the household profile schema, example template, authenticated `/api/profile` load/save endpoint, and WebUI JSON editor are implemented under `data/guide/profile`; richer form-based intake remains future UI refinement.
 - T024 is complete with warnings: the inventory schema, example template, authenticated `/api/inventory` load/save endpoint, WebUI JSON editor, and water/food/medication/power gap calculations are implemented under `data/guide/inventory`; richer category-specific inventory UI remains future refinement.
 - T025 is complete with warnings: the incident schema, example template, authenticated `/api/incidents` load/save endpoint, WebUI JSON editor, and operational timeline summary are implemented under `data/guide/incidents`; richer incident dashboard and guided operational forms remain future refinement.
+- T026 is complete with warnings: the communications schema, example template, authenticated `/api/communications` load/save endpoint, WebUI JSON editor, and communications summary are implemented under `data/guide/communications`; richer dashboard, radio settings, template rendering, and Meshtastic integration remain future refinements.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.

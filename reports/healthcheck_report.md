@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-26T07:44:43Z
+Generated: 2026-06-26T07:55:29Z
 
 Runtime: Linux/NUC
 
@@ -8,7 +8,7 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 43
+- Passed: 45
 - Warnings: 2
 - Failed: 0
 
@@ -25,6 +25,7 @@ Summary:
 | PASS | Required folder: data/guide/profile | present |
 | PASS | Required folder: data/guide/inventory | present |
 | PASS | Required folder: data/guide/incidents | present |
+| PASS | Required folder: data/guide/communications | present |
 | PASS | Required folder: data/anythingllm | present |
 | PASS | Required folder: data/openwebui | present |
 | PASS | Required folder: scripts | present |
@@ -47,6 +48,7 @@ Summary:
 | PASS | GUIDE profile schema | /mnt/usb/GUIDE/data/guide/profile/household_profile.schema.json |
 | PASS | GUIDE inventory schema | /mnt/usb/GUIDE/data/guide/inventory/inventory.schema.json |
 | PASS | GUIDE incident schema | /mnt/usb/GUIDE/data/guide/incidents/incidents.schema.json |
+| PASS | GUIDE communications schema | /mnt/usb/GUIDE/data/guide/communications/communications.schema.json |
 | PASS | zimdump installed | zim-tools 3.7.0 |
 | PASS | RAG operations checks | complete_with_warnings: 15 pass, 2 warn, 0 fail |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
@@ -61,4 +63,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T074440Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T075526Z.log`

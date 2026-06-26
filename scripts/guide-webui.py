@@ -31,6 +31,10 @@ INCIDENT_DIR = ROOT / "data" / "guide" / "incidents"
 INCIDENT_SCHEMA_PATH = INCIDENT_DIR / "incidents.schema.json"
 INCIDENT_EXAMPLE_PATH = INCIDENT_DIR / "incidents.example.json"
 INCIDENT_DATA_PATH = Path(os.environ.get("GUIDE_INCIDENTS_PATH") or INCIDENT_DIR / "incidents.json")
+COMMUNICATIONS_DIR = ROOT / "data" / "guide" / "communications"
+COMMUNICATIONS_SCHEMA_PATH = COMMUNICATIONS_DIR / "communications.schema.json"
+COMMUNICATIONS_EXAMPLE_PATH = COMMUNICATIONS_DIR / "communications.example.json"
+COMMUNICATIONS_DATA_PATH = Path(os.environ.get("GUIDE_COMMUNICATIONS_PATH") or COMMUNICATIONS_DIR / "communications.json")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 RAG_COLLECTION = os.environ.get("GUIDE_RAG_COLLECTION", "guide_library")
 EMBED_MODEL = os.environ.get("GUIDE_EMBED_MODEL", "nomic-embed-text")
@@ -422,6 +426,175 @@ def summarize_incidents(incidents_doc):
     }
 
 
+def load_communications_schema():
+    return json.loads(COMMUNICATIONS_SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def communications_template():
+    return json.loads(COMMUNICATIONS_EXAMPLE_PATH.read_text(encoding="utf-8"))
+
+
+def communications_status():
+    return {
+        "schema": str(COMMUNICATIONS_SCHEMA_PATH),
+        "example": str(COMMUNICATIONS_EXAMPLE_PATH),
+        "path": str(COMMUNICATIONS_DATA_PATH),
+        "exists": COMMUNICATIONS_DATA_PATH.exists(),
+    }
+
+
+def load_communications():
+    if COMMUNICATIONS_DATA_PATH.exists():
+        return json.loads(COMMUNICATIONS_DATA_PATH.read_text(encoding="utf-8"))
+    return communications_template()
+
+
+def validate_communications(communications_doc):
+    errors = []
+    if not isinstance(communications_doc, dict):
+        return ["communications must be a JSON object"]
+    for key in ("schema_version", "updated_at", "contacts", "channels", "message_templates", "message_log", "notes"):
+        if key not in communications_doc:
+            errors.append(f"missing required field: {key}")
+    if communications_doc.get("schema_version") != "1.0.0":
+        errors.append("schema_version must be 1.0.0")
+    for key in ("contacts", "channels", "message_templates", "message_log"):
+        if key in communications_doc and not isinstance(communications_doc[key], list):
+            errors.append(f"{key} must be an array")
+    contacts = communications_doc.get("contacts") if isinstance(communications_doc.get("contacts"), list) else []
+    channels = communications_doc.get("channels") if isinstance(communications_doc.get("channels"), list) else []
+    templates = communications_doc.get("message_templates") if isinstance(communications_doc.get("message_templates"), list) else []
+    message_log = communications_doc.get("message_log") if isinstance(communications_doc.get("message_log"), list) else []
+    allowed_contact_priorities = {"primary", "secondary", "monitor", "external"}
+    allowed_method_types = {"voice", "sms", "email", "radio", "meshtastic", "in_person", "other"}
+    allowed_channel_types = {"phone_tree", "sms", "email", "gmrs", "frs", "ham", "meshtastic", "runner", "in_person", "other"}
+    allowed_channel_statuses = {"available", "limited", "down", "unknown"}
+    allowed_template_priorities = {"routine", "important", "urgent", "emergency"}
+    allowed_directions = {"incoming", "outgoing", "internal"}
+    allowed_delivery_statuses = {"drafted", "sent", "delivered", "acknowledged", "failed", "received", "unknown"}
+    for idx, contact in enumerate(contacts):
+        if not isinstance(contact, dict):
+            errors.append(f"contacts[{idx}] must be an object")
+            continue
+        for key in ("id", "name", "role", "priority", "methods", "notes"):
+            if key not in contact:
+                errors.append(f"contacts[{idx}] missing required field: {key}")
+        if contact.get("priority") not in allowed_contact_priorities:
+            errors.append(f"contacts[{idx}].priority is invalid")
+        methods = contact.get("methods")
+        if not isinstance(methods, list):
+            errors.append(f"contacts[{idx}].methods must be an array")
+            continue
+        for method_idx, method in enumerate(methods):
+            if not isinstance(method, dict):
+                errors.append(f"contacts[{idx}].methods[{method_idx}] must be an object")
+                continue
+            for key in ("type", "value", "preferred", "notes"):
+                if key not in method:
+                    errors.append(f"contacts[{idx}].methods[{method_idx}] missing required field: {key}")
+            if method.get("type") not in allowed_method_types:
+                errors.append(f"contacts[{idx}].methods[{method_idx}].type is invalid")
+            if "preferred" in method and not isinstance(method["preferred"], bool):
+                errors.append(f"contacts[{idx}].methods[{method_idx}].preferred must be boolean")
+    for idx, channel in enumerate(channels):
+        if not isinstance(channel, dict):
+            errors.append(f"channels[{idx}] must be an object")
+            continue
+        for key in ("id", "name", "channel_type", "frequency", "protocol", "coverage", "status", "notes"):
+            if key not in channel:
+                errors.append(f"channels[{idx}] missing required field: {key}")
+        if channel.get("channel_type") not in allowed_channel_types:
+            errors.append(f"channels[{idx}].channel_type is invalid")
+        if channel.get("status") not in allowed_channel_statuses:
+            errors.append(f"channels[{idx}].status is invalid")
+    for idx, template in enumerate(templates):
+        if not isinstance(template, dict):
+            errors.append(f"message_templates[{idx}] must be an object")
+            continue
+        for key in ("id", "title", "scenario", "priority", "audience", "channel_type", "body", "variables", "source_citations", "notes"):
+            if key not in template:
+                errors.append(f"message_templates[{idx}] missing required field: {key}")
+        if template.get("priority") not in allowed_template_priorities:
+            errors.append(f"message_templates[{idx}].priority is invalid")
+        for key in ("variables", "source_citations"):
+            if key in template and not isinstance(template[key], list):
+                errors.append(f"message_templates[{idx}].{key} must be an array")
+    for idx, entry in enumerate(message_log):
+        if not isinstance(entry, dict):
+            errors.append(f"message_log[{idx}] must be an object")
+            continue
+        for key in ("id", "timestamp", "direction", "channel_id", "contact_ids", "message_template_id", "message", "delivery_status", "incident_id", "operator", "notes"):
+            if key not in entry:
+                errors.append(f"message_log[{idx}] missing required field: {key}")
+        if entry.get("direction") not in allowed_directions:
+            errors.append(f"message_log[{idx}].direction is invalid")
+        if entry.get("delivery_status") not in allowed_delivery_statuses:
+            errors.append(f"message_log[{idx}].delivery_status is invalid")
+        if "contact_ids" in entry and not isinstance(entry["contact_ids"], list):
+            errors.append(f"message_log[{idx}].contact_ids must be an array")
+    return errors
+
+
+def save_communications(communications_doc):
+    errors = validate_communications(communications_doc)
+    if errors:
+        return errors
+    communications_doc["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    COMMUNICATIONS_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = COMMUNICATIONS_DATA_PATH.with_suffix(COMMUNICATIONS_DATA_PATH.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(communications_doc, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp_path.replace(COMMUNICATIONS_DATA_PATH)
+    return []
+
+
+def summarize_communications(communications_doc):
+    contacts = communications_doc.get("contacts") if isinstance(communications_doc, dict) else []
+    channels = communications_doc.get("channels") if isinstance(communications_doc, dict) else []
+    templates = communications_doc.get("message_templates") if isinstance(communications_doc, dict) else []
+    message_log = communications_doc.get("message_log") if isinstance(communications_doc, dict) else []
+    contacts = contacts if isinstance(contacts, list) else []
+    channels = channels if isinstance(channels, list) else []
+    templates = templates if isinstance(templates, list) else []
+    message_log = message_log if isinstance(message_log, list) else []
+    by_channel_status = {}
+    by_channel_type = {}
+    by_delivery_status = {}
+    recent_messages = []
+    for channel in channels:
+        if not isinstance(channel, dict):
+            continue
+        status = channel.get("status") or "unknown"
+        channel_type = channel.get("channel_type") or "unknown"
+        by_channel_status[status] = by_channel_status.get(status, 0) + 1
+        by_channel_type[channel_type] = by_channel_type.get(channel_type, 0) + 1
+    for entry in message_log:
+        if not isinstance(entry, dict):
+            continue
+        delivery = entry.get("delivery_status") or "unknown"
+        by_delivery_status[delivery] = by_delivery_status.get(delivery, 0) + 1
+        recent_messages.append({
+            "id": entry.get("id") or "",
+            "timestamp": entry.get("timestamp") or "",
+            "direction": entry.get("direction") or "",
+            "channel_id": entry.get("channel_id") or "",
+            "delivery_status": delivery,
+            "message": entry.get("message") or "",
+            "incident_id": entry.get("incident_id") or "",
+        })
+    recent_messages.sort(key=lambda item: item["timestamp"], reverse=True)
+    return {
+        "contacts": len(contacts),
+        "channels": len(channels),
+        "message_templates": len(templates),
+        "message_log_entries": len(message_log),
+        "available_channels": by_channel_status.get("available", 0),
+        "by_channel_status": by_channel_status,
+        "by_channel_type": by_channel_type,
+        "by_delivery_status": by_delivery_status,
+        "recent_messages": recent_messages[:8],
+    }
+
+
 def household_people_count(profile):
     people = profile.get("people") if isinstance(profile, dict) else []
     if isinstance(people, list) and people:
@@ -589,6 +762,7 @@ def runtime_status():
         "profile": profile_status(),
         "inventory": inventory_status(),
         "incidents": incidents_status(),
+        "communications": communications_status(),
         "auth": {
             "required_by_policy": AUTH_REQUIRED,
             "enforced_by_webui": AUTH_ENFORCED,
@@ -894,6 +1068,20 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(500, {"error": str(exc)})
             return
 
+        if self.path == "/api/communications":
+            try:
+                communications_doc = load_communications()
+                self.send_json(200, {
+                    "communications": communications_doc,
+                    "schema": load_communications_schema(),
+                    "status": communications_status(),
+                    "validation_errors": validate_communications(communications_doc),
+                    "summary": summarize_communications(communications_doc),
+                })
+            except Exception as exc:
+                self.send_json(500, {"error": str(exc)})
+            return
+
         if self.path == "/library" or self.path.startswith("/library/"):
             requested = self.path.removeprefix("/library").lstrip("/")
             target = safe_child(LIBRARY_DIR, requested)
@@ -931,7 +1119,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.require_auth():
             return
 
-        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile", "/api/inventory", "/api/incidents"):
+        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile", "/api/inventory", "/api/incidents", "/api/communications"):
             self.send_error(404)
             return
         try:
@@ -962,6 +1150,19 @@ class Handler(BaseHTTPRequestHandler):
                     "status": incidents_status(),
                     "validation_errors": [],
                     "summary": summarize_incidents(saved),
+                })
+            elif self.path == "/api/communications":
+                communications_doc = incoming.get("communications") if isinstance(incoming, dict) and "communications" in incoming else incoming
+                errors = save_communications(communications_doc)
+                if errors:
+                    self.send_json(400, {"error": "communications validation failed", "validation_errors": errors})
+                    return
+                saved = load_communications()
+                self.send_json(200, {
+                    "communications": saved,
+                    "status": communications_status(),
+                    "validation_errors": [],
+                    "summary": summarize_communications(saved),
                 })
             elif self.path == "/api/profile":
                 profile = incoming.get("profile") if isinstance(incoming, dict) and "profile" in incoming else incoming
