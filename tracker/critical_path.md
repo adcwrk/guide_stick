@@ -16,7 +16,7 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 6 | T019 Build ChromaDB library index | Complete | ChromaDB `guide_library` contains 213,850 indexed chunks for all 56,136 corpus documents. |
 | 7 | T029 Add RAG orchestration endpoint | Complete with Warnings | `/api/ask-library` retrieves Chroma chunks, builds source context, asks Ollama, and returns cited answers; answer quality still depends on corpus coverage and future native ZIM extraction. |
 | 8 | T020 Add Ask Library UI | Complete with Warnings | Ask Library status, citation rendering, risk notes, fallback behavior, and auth-policy warning are implemented; T011 still needs real WebUI auth enforcement. |
-| 9 | T021 Add RAG operations checks | Backlog | Makes the index supportable and auditable. |
+| 9 | T021 Add RAG operations checks | Complete with Warnings | RAG ops checks validate corpus manifest rows, source inventory, index freshness, indexed chunk counts, and live Chroma collection count; warnings remain for deferred/partial ZIM extraction. |
 
 ## Phase Gates
 
@@ -30,9 +30,9 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T021: Add RAG operations checks.
+T011: Add authentication to the lightweight GUIDE WebUI or document compensating controls.
 
-Reason: T020 is complete with warnings. The next blocker is making RAG supportable with deeper source manifest, freshness, and Chroma collection checks.
+Reason: T021 completes the RAG critical path with warnings. T011 is now the next blocker for GUIDE platform work because T023 and later user-data features depend on the security gate.
 
 ## Parallel Work That Does Not Block RAG
 
@@ -50,4 +50,5 @@ Reason: T020 is complete with warnings. The next blocker is making RAG supportab
 - T019 is complete: 56,136 corpus documents produced 213,850 indexed ChromaDB chunks with 0 indexing errors.
 - T029 is complete with warnings: `/api/ask-library` works against the completed Chroma index and returns cited answers, but retrieval quality is only as good as the current HTML/text corpus. Native ZIM article extraction remains deferred.
 - T020 is complete with warnings: the WebUI exposes Ask Library with index readiness, citations, risk notes, fallback to normal chat, and an auth-policy warning. T011 remains open for actual WebUI auth enforcement.
+- T021 is complete with warnings: `scripts/check-rag-ops.sh` writes `data/rag/library_manifest.json` and `reports/rag_operations_report.md`; current checks report 15 pass, 2 warn, 0 fail. Warnings are deferred native ZIM extraction and one partial ZIM import record.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.

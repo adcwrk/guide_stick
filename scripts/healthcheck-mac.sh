@@ -54,7 +54,7 @@ ollama_bin() {
 [ -d "$USB_DIR" ] && record PASS "USB mounted" "$USB_DIR exists" || record FAIL "USB mounted" "$USB_DIR missing"
 [ -w "$USB_DIR" ] && record PASS "USB writable" "$USB_DIR is writable" || record FAIL "USB writable" "$USB_DIR is not writable"
 
-for dir in config documents logs backups reports anythingllm_data ollama data/chroma data/anythingllm data/openwebui; do
+for dir in config documents logs backups reports anythingllm_data ollama data/chroma data/rag/corpus data/anythingllm data/openwebui; do
   [ -d "$USB_DIR/$dir" ] && record PASS "Required directory: $dir" "present" || record FAIL "Required directory: $dir" "missing"
 done
 
@@ -62,6 +62,18 @@ touch "$LOG_DIR/.healthcheck_write_test" 2>/dev/null && rm -f "$LOG_DIR/.healthc
 touch "$USB_DIR/documents/.healthcheck_write_test" 2>/dev/null && rm -f "$USB_DIR/documents/.healthcheck_write_test" 2>/dev/null && record PASS "Document path writable" "$USB_DIR/documents" || record FAIL "Document path writable" "$USB_DIR/documents"
 touch "$USB_DIR/anythingllm_data/.healthcheck_write_test" 2>/dev/null && rm -f "$USB_DIR/anythingllm_data/.healthcheck_write_test" 2>/dev/null && record PASS "Data path writable" "$USB_DIR/anythingllm_data" || record FAIL "Data path writable" "$USB_DIR/anythingllm_data"
 touch "$USB_DIR/data/chroma/.healthcheck_write_test" 2>/dev/null && rm -f "$USB_DIR/data/chroma/.healthcheck_write_test" 2>/dev/null && record PASS "ChromaDB path writable" "$USB_DIR/data/chroma" || record FAIL "ChromaDB path writable" "$USB_DIR/data/chroma"
+
+[ -s "$USB_DIR/data/rag/corpus/manifest.jsonl" ] && record PASS "RAG corpus manifest" "$(wc -l < "$USB_DIR/data/rag/corpus/manifest.jsonl") rows" || record WARN "RAG corpus manifest" "missing or empty"
+[ -s "$USB_DIR/data/chroma/library/indexed_ids.txt" ] && record PASS "RAG Chroma index" "$(wc -l < "$USB_DIR/data/chroma/library/indexed_ids.txt") indexed chunks" || record WARN "RAG Chroma index" "not started"
+[ -x "$USB_DIR/scripts/check-rag-ops.sh" ] && record PASS "Executable: scripts/check-rag-ops.sh" "yes" || record WARN "Executable: scripts/check-rag-ops.sh" "not executable; run with bash if exFAT clears mode bits"
+
+if "$USB_DIR/scripts/check-rag-ops.sh" >>"$LOG_FILE" 2>&1; then
+  rag_ops_detail="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("%s: %s pass, %s warn, %s fail" % (d.get("status"), d.get("summary", {}).get("passed"), d.get("summary", {}).get("warnings"), d.get("summary", {}).get("failed")))' "$USB_DIR/data/rag/library_manifest.json" 2>/dev/null || true)"
+  [ -n "$rag_ops_detail" ] || rag_ops_detail="see data/rag/library_manifest.json"
+  record PASS "RAG operations checks" "$rag_ops_detail"
+else
+  record FAIL "RAG operations checks" "see reports/rag_operations_report.md and data/rag/library_manifest.json"
+fi
 
 if curl -fsS "$OLLAMA_URL/api/tags" >/dev/null 2>&1; then
   record PASS "Ollama running" "$OLLAMA_URL/api/tags reachable"

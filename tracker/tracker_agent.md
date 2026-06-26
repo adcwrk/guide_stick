@@ -43,7 +43,8 @@ As of this tracker version:
 3. T019 is complete.
 4. T029 is complete with warnings.
 5. T020 is complete with warnings.
-6. T021 is the first incomplete critical-path task.
+6. T021 is complete with warnings.
+7. T011 is the next blocker because T023 depends on the security gate.
 
 ## Agent Prompt
 

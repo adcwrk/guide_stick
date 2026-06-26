@@ -1,6 +1,6 @@
 # Healthcheck Report
 
-Generated: 2026-06-26T03:25:02Z
+Generated: 2026-06-26T06:10:23Z
 
 Runtime: Linux/NUC
 
@@ -8,7 +8,7 @@ USB root: `/mnt/usb/GUIDE`
 
 Summary:
 
-- Passed: 34
+- Passed: 36
 - Warnings: 2
 - Failed: 0
 
@@ -35,12 +35,14 @@ Summary:
 | PASS | Executable: scripts/install-anythingllm-linux.sh | yes |
 | PASS | Executable: scripts/extract-library-corpus.sh | yes |
 | PASS | Executable: scripts/build-rag-index.sh | yes |
+| PASS | Executable: scripts/check-rag-ops.sh | yes |
 | PASS | Logs writable | /mnt/usb/GUIDE/logs |
 | PASS | Documents writable | /mnt/usb/GUIDE/documents |
 | PASS | ChromaDB path writable | /mnt/usb/GUIDE/data/chroma |
 | PASS | RAG corpus manifest | 56136 rows |
 | PASS | RAG Chroma index | 213850 indexed chunks |
 | PASS | zimdump installed | zim-tools 3.7.0 |
+| PASS | RAG operations checks | complete_with_warnings: 15 pass, 2 warn, 0 fail |
 | PASS | Ollama reachable | http://127.0.0.1:11434/api/tags |
 | PASS | Ollama installed | /mnt/usb/GUIDE/ollama/ollama |
 | PASS | Model: qwen2.5:7b | available |
@@ -52,4 +54,4 @@ Summary:
 | PASS | LAN URL displayed | Local:    http://localhost:8080 Remote:   http://10.20.20.167:8080 Hostname: http://guide.local:8080  |
 
 
-Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T032502Z.log`
+Log file: `/mnt/usb/GUIDE/logs/healthcheck-linux-20260626T061020Z.log`

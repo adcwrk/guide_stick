@@ -1,0 +1,160 @@
+{
+  "checks": [
+    {
+      "check": "Corpus summary manifest",
+      "detail": "/mnt/usb/GUIDE/data/rag/corpus/library_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "check": "Corpus JSONL manifest",
+      "detail": "56136 rows, 56136 ok rows",
+      "status": "PASS"
+    },
+    {
+      "check": "Corpus file references",
+      "detail": "all ok rows point to readable text files",
+      "status": "PASS"
+    },
+    {
+      "check": "Corpus document count",
+      "detail": "56136 ok rows match extraction summary",
+      "status": "PASS"
+    },
+    {
+      "check": "ZIM source inventory",
+      "detail": "18 recorded ZIM source files present",
+      "status": "PASS"
+    },
+    {
+      "check": "ZIM source sizes",
+      "detail": "recorded ZIM sizes match current files",
+      "status": "PASS"
+    },
+    {
+      "check": "Native ZIM article extraction",
+      "detail": "18 ZIM files deferred",
+      "status": "WARN"
+    },
+    {
+      "check": "Partial ZIM imports",
+      "detail": "1 partial ZIM import file(s) recorded",
+      "status": "WARN"
+    },
+    {
+      "check": "zimdump current availability",
+      "detail": "/mnt/usb/GUIDE/tools/zim-tools/zimdump",
+      "status": "PASS"
+    },
+    {
+      "check": "Index manifest",
+      "detail": "/mnt/usb/GUIDE/data/chroma/library/guide_index_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "check": "Index status",
+      "detail": "complete",
+      "status": "PASS"
+    },
+    {
+      "check": "Indexed IDs ledger",
+      "detail": "213850 chunk IDs",
+      "status": "PASS"
+    },
+    {
+      "check": "Indexed chunk ledger count",
+      "detail": "213850 matches chunks_seen",
+      "status": "PASS"
+    },
+    {
+      "check": "Indexed document count",
+      "detail": "56136 matches corpus ok rows",
+      "status": "PASS"
+    },
+    {
+      "check": "ChromaDB live collection",
+      "detail": "guide_library has 213850 chunks",
+      "status": "PASS"
+    },
+    {
+      "check": "Chroma/index count agreement",
+      "detail": "213850 chunks",
+      "status": "PASS"
+    },
+    {
+      "check": "Index freshness",
+      "detail": "index completed at 2026-06-25T10:59:09Z after corpus generated at 2026-06-21T15:57:52Z",
+      "status": "PASS"
+    }
+  ],
+  "corpus": {
+    "bytes": 316418454,
+    "missing_corpus_files": 0,
+    "ok_rows": 56136,
+    "path": "/mnt/usb/GUIDE/data/rag/corpus/manifest.jsonl",
+    "rows": 56136,
+    "source_type_counts": {
+      "css": 1179,
+      "csv": 1,
+      "html": 969,
+      "json": 52365,
+      "md": 727,
+      "rst": 51,
+      "txt": 662,
+      "xml": 129,
+      "yaml": 10,
+      "yml": 43
+    }
+  },
+  "generated_at": "2026-06-26T06:10:22Z",
+  "index": {
+    "chroma": {
+      "available": true,
+      "collection": "guide_library",
+      "count": 213850
+    },
+    "indexed_ids_count": 213850,
+    "manifest": {
+      "batches_added": 3213,
+      "chroma_path": "/mnt/usb/GUIDE/data/chroma/library",
+      "chunks_added": 205594,
+      "chunks_seen": 213850,
+      "chunks_skipped_existing": 8256,
+      "collection": "guide_library",
+      "collection_count": 213850,
+      "completed_at": "2026-06-25T10:59:09Z",
+      "documents_seen": 56136,
+      "embedding_model": "nomic-embed-text",
+      "errors": 0,
+      "manifest": "/mnt/usb/GUIDE/data/rag/corpus/manifest.jsonl",
+      "started_at": "2026-06-22T02:00:48Z",
+      "status": "complete"
+    }
+  },
+  "paths": {
+    "chroma_path": "/mnt/usb/GUIDE/data/chroma/library",
+    "corpus_manifest": "/mnt/usb/GUIDE/data/rag/corpus/manifest.jsonl",
+    "corpus_summary": "/mnt/usb/GUIDE/data/rag/corpus/library_manifest.json",
+    "index_manifest": "/mnt/usb/GUIDE/data/chroma/library/guide_index_manifest.json",
+    "indexed_ids": "/mnt/usb/GUIDE/data/chroma/library/indexed_ids.txt",
+    "output_manifest": "/mnt/usb/GUIDE/data/rag/library_manifest.json"
+  },
+  "sources": {
+    "zim": {
+      "current_tool": "/mnt/usb/GUIDE/tools/zim-tools/zimdump",
+      "missing_files": 0,
+      "partials": 1,
+      "records": 18,
+      "size_mismatches": 0,
+      "status_counts": {
+        "deferred": 18
+      },
+      "tool": null
+    }
+  },
+  "status": "complete_with_warnings",
+  "summary": {
+    "failed": 0,
+    "passed": 15,
+    "warnings": 2
+  }
+}

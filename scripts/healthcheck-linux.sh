@@ -74,7 +74,7 @@ for dir in config documents logs backups reports data/chroma data/rag/corpus dat
   [ -d "$USB_DIR/$dir" ] && record PASS "Required folder: $dir" "present" || record FAIL "Required folder: $dir" "missing"
 done
 
-for script in start-linux.sh setup-linux.sh scripts/detect-usb.sh scripts/get-lan-url.sh scripts/backup-portable.sh scripts/ingest-documents.sh scripts/install-anythingllm-linux.sh scripts/extract-library-corpus.sh scripts/build-rag-index.sh; do
+for script in start-linux.sh setup-linux.sh scripts/detect-usb.sh scripts/get-lan-url.sh scripts/backup-portable.sh scripts/ingest-documents.sh scripts/install-anythingllm-linux.sh scripts/extract-library-corpus.sh scripts/build-rag-index.sh scripts/check-rag-ops.sh; do
   [ -x "$USB_DIR/$script" ] && record PASS "Executable: $script" "yes" || record WARN "Executable: $script" "not executable; run with bash if exFAT clears mode bits"
 done
 
@@ -85,6 +85,14 @@ touch "$USB_DIR/data/chroma/.healthcheck_write" 2>/dev/null && rm -f "$USB_DIR/d
 [ -s "$USB_DIR/data/rag/corpus/manifest.jsonl" ] && record PASS "RAG corpus manifest" "$(wc -l < "$USB_DIR/data/rag/corpus/manifest.jsonl") rows" || record WARN "RAG corpus manifest" "missing or empty"
 [ -s "$USB_DIR/data/chroma/library/indexed_ids.txt" ] && record PASS "RAG Chroma index" "$(wc -l < "$USB_DIR/data/chroma/library/indexed_ids.txt") indexed chunks" || record WARN "RAG Chroma index" "not started"
 [ -x "$USB_DIR/tools/zim-tools/zimdump" ] && record PASS "zimdump installed" "$("$USB_DIR/tools/zim-tools/zimdump" --version | head -n 1)" || record WARN "zimdump installed" "not found under tools/zim-tools"
+
+if "$USB_DIR/scripts/check-rag-ops.sh" >>"$LOG_FILE" 2>&1; then
+  rag_ops_detail="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("%s: %s pass, %s warn, %s fail" % (d.get("status"), d.get("summary", {}).get("passed"), d.get("summary", {}).get("warnings"), d.get("summary", {}).get("failed")))' "$USB_DIR/data/rag/library_manifest.json" 2>/dev/null || true)"
+  [ -n "$rag_ops_detail" ] || rag_ops_detail="see data/rag/library_manifest.json"
+  record PASS "RAG operations checks" "$rag_ops_detail"
+else
+  record FAIL "RAG operations checks" "see reports/rag_operations_report.md and data/rag/library_manifest.json"
+fi
 
 if curl -fsS "http://127.0.0.1:$OLLAMA_PORT/api/tags" >/dev/null 2>&1; then
   record PASS "Ollama reachable" "http://127.0.0.1:$OLLAMA_PORT/api/tags"
