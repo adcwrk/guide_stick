@@ -15,7 +15,7 @@ This file identifies the execution order that turns the current GUIDE USB build 
 | 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; USB-local `zimdump` is installed, and native ZIM article extraction is deferred as a targeted size-guarded job. |
 | 6 | T019 Build ChromaDB library index | Complete | ChromaDB `guide_library` contains 213,850 indexed chunks for all 56,136 corpus documents. |
 | 7 | T029 Add RAG orchestration endpoint | Complete with Warnings | `/api/ask-library` retrieves Chroma chunks, builds source context, asks Ollama, and returns cited answers; answer quality still depends on corpus coverage and future native ZIM extraction. |
-| 8 | T020 Add Ask Library UI | In Progress | Basic WebUI button and citation rendering exist; finish UX fallback/status handling after the auth/security gate is addressed. |
+| 8 | T020 Add Ask Library UI | Complete with Warnings | Ask Library status, citation rendering, risk notes, fallback behavior, and auth-policy warning are implemented; T011 still needs real WebUI auth enforcement. |
 | 9 | T021 Add RAG operations checks | Backlog | Makes the index supportable and auditable. |
 
 ## Phase Gates
@@ -30,9 +30,9 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T020: Add Ask Library UI.
+T021: Add RAG operations checks.
 
-Reason: T029 is complete with warnings. The next blocker is making the source-grounded Ask Library flow production-ready in the WebUI while accounting for the still-open authentication/security work.
+Reason: T020 is complete with warnings. The next blocker is making RAG supportable with deeper source manifest, freshness, and Chroma collection checks.
 
 ## Parallel Work That Does Not Block RAG
 
@@ -49,4 +49,5 @@ Reason: T029 is complete with warnings. The next blocker is making the source-gr
 - T018 is complete with warnings because 56,136 HTML/text corpus documents were generated with zero extraction failures, but full native ZIM article extraction remains a deliberate targeted job. USB-local `zimdump` is installed; large dumps are guarded by `ZIM_MAX_BYTES`.
 - T019 is complete: 56,136 corpus documents produced 213,850 indexed ChromaDB chunks with 0 indexing errors.
 - T029 is complete with warnings: `/api/ask-library` works against the completed Chroma index and returns cited answers, but retrieval quality is only as good as the current HTML/text corpus. Native ZIM article extraction remains deferred.
+- T020 is complete with warnings: the WebUI exposes Ask Library with index readiness, citations, risk notes, fallback to normal chat, and an auth-policy warning. T011 remains open for actual WebUI auth enforcement.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.

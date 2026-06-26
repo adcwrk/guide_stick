@@ -22,6 +22,8 @@ ASK_MODEL = os.environ.get("GUIDE_ASK_MODEL", "qwen2.5:7b")
 DEFAULT_TOP_K = int(os.environ.get("GUIDE_RAG_TOP_K", "6"))
 MAX_TOP_K = int(os.environ.get("GUIDE_RAG_MAX_TOP_K", "12"))
 MAX_CONTEXT_CHARS = int(os.environ.get("GUIDE_RAG_MAX_CONTEXT_CHARS", "14000"))
+AUTH_REQUIRED = os.environ.get("ENABLE_AUTH", "true").lower() not in ("0", "false", "no", "off")
+AUTH_ENFORCED = False
 
 
 def find_rag_python():
@@ -95,6 +97,28 @@ def index_status():
         except Exception as exc:
             status["manifest_error"] = str(exc)
     return status
+
+
+def runtime_status():
+    return {
+        "ollama_url": OLLAMA_URL,
+        "rag": {
+            "collection": RAG_COLLECTION,
+            "embedding_model": EMBED_MODEL,
+            "default_model": ASK_MODEL,
+            "default_top_k": DEFAULT_TOP_K,
+            "max_top_k": MAX_TOP_K,
+        },
+        "auth": {
+            "required_by_policy": AUTH_REQUIRED,
+            "enforced_by_webui": AUTH_ENFORCED,
+            "warning": (
+                "ENABLE_AUTH is true, but the lightweight GUIDE WebUI does not enforce authentication yet. "
+                "Keep it on localhost or a trusted LAN until T011 is complete."
+                if AUTH_REQUIRED and not AUTH_ENFORCED else ""
+            ),
+        },
+    }
 
 
 def clamp_top_k(value):
@@ -290,6 +314,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if self.path == "/api/library":
             self.send_json(200, library_summary())
+            return
+
+        if self.path == "/api/status":
+            self.send_json(200, runtime_status())
             return
 
         if self.path == "/api/library-index":

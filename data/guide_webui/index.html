@@ -20,10 +20,14 @@
     .answer { white-space: pre-wrap; line-height: 1.5; }
     .status { color: #a8b3bd; font-size: 14px; }
     .warn { color: #ffd479; }
+    .ok { color: #7ee787; }
+    .danger { color: #ff9b9b; }
+    .controls { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
     .link { display: block; color: #86b7ff; text-decoration: none; padding: 9px 10px; border: 1px solid #29313a; border-radius: 6px; background: #10161d; overflow-wrap: anywhere; }
     .link:hover { border-color: #3f83f8; }
     .muted { color: #a8b3bd; }
+    .mini { font-size: 13px; }
     .citations { margin-top: 12px; display: grid; gap: 8px; }
     .citation { border-left: 3px solid #3f83f8; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .citation a { color: #86b7ff; text-decoration: none; overflow-wrap: anywhere; }
@@ -44,19 +48,24 @@
       <button id="refresh">Refresh Models</button>
     </div>
     <textarea id="prompt" placeholder="Ask GUIDE something..."></textarea>
-    <div style="margin-top: 12px;">
+    <div class="controls">
       <button id="send">Send</button>
       <button id="askLibrary">Ask Library</button>
+      <span class="status mini" id="ragStatus">Checking library index...</span>
     </div>
     <section class="panel">
       <div class="answer" id="answer">No response yet.</div>
       <div class="citations" id="citations"></div>
+      <div class="status mini" id="riskNotes" style="margin-top: 12px;"></div>
     </section>
     <section class="panel">
       <h2 style="margin-top: 0; font-size: 18px;">Library</h2>
       <div id="libraryStatus" class="status">Checking imported library...</div>
       <div id="libraryLinks" class="grid" style="margin-top: 12px;"></div>
       <div id="zimList" class="status" style="margin-top: 12px;"></div>
+    </section>
+    <section class="panel status" id="securityPanel">
+      <span id="securityStatus">Checking security policy...</span>
     </section>
     <section class="panel status">
       Ollama backend: <code>http://127.0.0.1:11434</code><br>
@@ -72,9 +81,70 @@
     const sendBtn = document.getElementById('send');
     const askLibraryBtn = document.getElementById('askLibrary');
     const citationsEl = document.getElementById('citations');
+    const riskNotesEl = document.getElementById('riskNotes');
+    const ragStatusEl = document.getElementById('ragStatus');
+    const securityStatus = document.getElementById('securityStatus');
     const libraryStatus = document.getElementById('libraryStatus');
     const libraryLinks = document.getElementById('libraryLinks');
     const zimList = document.getElementById('zimList');
+    const appState = { modelsReady: false, ragReady: false, busy: false };
+
+    function setBusy(busy) {
+      appState.busy = busy;
+      sendBtn.disabled = busy;
+      askLibraryBtn.disabled = busy || !appState.ragReady;
+    }
+
+    function setTextStatus(el, text, className = 'status') {
+      el.className = className;
+      el.textContent = text;
+    }
+
+    function renderRiskNotes(notes) {
+      riskNotesEl.textContent = '';
+      if (!notes || !notes.length) return;
+      riskNotesEl.textContent = notes.join(' ');
+    }
+
+    async function loadRuntimeStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        const auth = data.auth || {};
+        if (auth.warning) {
+          setTextStatus(securityStatus, auth.warning, 'danger');
+        } else if (auth.enforced_by_webui) {
+          setTextStatus(securityStatus, 'Authentication is enforced by the GUIDE WebUI.', 'ok');
+        } else {
+          setTextStatus(securityStatus, 'Authentication is not required by the current policy.', 'status');
+        }
+      } catch (err) {
+        setTextStatus(securityStatus, `Security policy status unavailable: ${err.message}`, 'warn');
+      }
+    }
+
+    async function loadRagStatus() {
+      appState.ragReady = false;
+      askLibraryBtn.disabled = true;
+      setTextStatus(ragStatusEl, 'Checking library index...', 'status mini');
+      try {
+        const res = await fetch('/api/library-index');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Index status request failed');
+        const ready = data.status === 'complete' && Number(data.collection_count || 0) > 0 && !data.collection_error;
+        appState.ragReady = ready;
+        if (ready) {
+          setTextStatus(ragStatusEl, `Library index ready: ${data.collection_count} chunks`, 'ok mini');
+        } else {
+          const detail = data.collection_error || data.status || 'not ready';
+          setTextStatus(ragStatusEl, `Library index unavailable: ${detail}. Send will use normal chat.`, 'warn mini');
+        }
+      } catch (err) {
+        setTextStatus(ragStatusEl, `Library index unavailable: ${err.message}. Send will use normal chat.`, 'warn mini');
+      } finally {
+        askLibraryBtn.disabled = appState.busy || !appState.ragReady;
+      }
+    }
 
     async function loadModels() {
       statusEl.textContent = 'Checking Ollama...';
@@ -94,19 +164,22 @@
           opt.textContent = model.name;
           modelSelect.appendChild(opt);
         }
+        appState.modelsReady = true;
         statusEl.textContent = `${models.length} model(s) available`;
       } catch (err) {
+        appState.modelsReady = false;
         statusEl.innerHTML = '<span class="warn">Ollama is not reachable.</span>';
       }
     }
 
-    async function sendMessage() {
+    async function sendMessage(fallbackNotice = '') {
+      if (typeof fallbackNotice !== 'string') fallbackNotice = '';
       const message = promptEl.value.trim();
       if (!message) return;
-      sendBtn.disabled = true;
-      askLibraryBtn.disabled = true;
-      answerEl.textContent = 'Thinking...';
+      setBusy(true);
+      answerEl.textContent = fallbackNotice ? `${fallbackNotice}\n\nThinking...` : 'Thinking...';
       citationsEl.innerHTML = '';
+      renderRiskNotes([]);
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
@@ -115,22 +188,26 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Request failed');
-        answerEl.textContent = data.message?.content || JSON.stringify(data, null, 2);
+        const answer = data.message?.content || JSON.stringify(data, null, 2);
+        answerEl.textContent = fallbackNotice ? `${fallbackNotice}\n\n${answer}` : answer;
       } catch (err) {
         answerEl.textContent = `Error: ${err.message}`;
       } finally {
-        sendBtn.disabled = false;
-        askLibraryBtn.disabled = false;
+        setBusy(false);
       }
     }
 
     async function askLibrary() {
       const question = promptEl.value.trim();
       if (!question) return;
-      sendBtn.disabled = true;
-      askLibraryBtn.disabled = true;
+      if (!appState.ragReady) {
+        await sendMessage('Library index is unavailable; using normal chat without citations.');
+        return;
+      }
+      setBusy(true);
       answerEl.textContent = 'Searching library...';
       citationsEl.innerHTML = '';
+      renderRiskNotes([]);
       try {
         const res = await fetch('/api/ask-library', {
           method: 'POST',
@@ -140,6 +217,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Request failed');
         answerEl.textContent = data.answer || JSON.stringify(data, null, 2);
+        renderRiskNotes(data.risk_notes || []);
         citationsEl.innerHTML = '';
         for (const citation of data.citations || []) {
           const item = document.createElement('div');
@@ -167,10 +245,10 @@
           citationsEl.appendChild(item);
         }
       } catch (err) {
-        answerEl.textContent = `Error: ${err.message}`;
+        await loadRagStatus();
+        await sendMessage(`Ask Library failed: ${err.message}\nUsing normal chat without citations.`);
       } finally {
-        sendBtn.disabled = false;
-        askLibraryBtn.disabled = false;
+        setBusy(false);
       }
     }
 
@@ -220,7 +298,9 @@
     document.getElementById('refresh').addEventListener('click', loadModels);
     sendBtn.addEventListener('click', sendMessage);
     askLibraryBtn.addEventListener('click', askLibrary);
+    loadRuntimeStatus();
     loadModels();
+    loadRagStatus();
     loadLibrary();
   </script>
 </body>
