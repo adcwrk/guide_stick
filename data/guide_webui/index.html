@@ -29,6 +29,9 @@
     .muted { color: #a8b3bd; }
     .mini { font-size: 13px; }
     .profile-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    .inventory-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    .gap { border-left: 3px solid #ffd479; padding: 8px 10px; background: #10161d; border-radius: 4px; }
+    .gap.critical { border-left-color: #ff6b6b; }
     .citations { margin-top: 12px; display: grid; gap: 8px; }
     .citation { border-left: 3px solid #3f83f8; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .citation a { color: #86b7ff; text-decoration: none; overflow-wrap: anywhere; }
@@ -74,6 +77,16 @@
         <button id="saveProfile">Save Profile</button>
       </div>
     </section>
+    <section class="panel">
+      <h2 style="margin-top: 0; font-size: 18px;">Preparedness Inventory</h2>
+      <div id="inventoryStatus" class="status">Checking inventory...</div>
+      <div id="inventorySummary" class="citations"></div>
+      <textarea id="inventoryEditor" class="inventory-editor" spellcheck="false"></textarea>
+      <div class="controls">
+        <button id="loadInventory">Load Inventory</button>
+        <button id="saveInventory">Save Inventory</button>
+      </div>
+    </section>
     <section class="panel status" id="securityPanel">
       <span id="securityStatus">Checking security policy...</span>
     </section>
@@ -101,6 +114,11 @@
     const profileEditor = document.getElementById('profileEditor');
     const loadProfileBtn = document.getElementById('loadProfile');
     const saveProfileBtn = document.getElementById('saveProfile');
+    const inventoryStatus = document.getElementById('inventoryStatus');
+    const inventorySummary = document.getElementById('inventorySummary');
+    const inventoryEditor = document.getElementById('inventoryEditor');
+    const loadInventoryBtn = document.getElementById('loadInventory');
+    const saveInventoryBtn = document.getElementById('saveInventory');
     const appState = { modelsReady: false, ragReady: false, busy: false };
 
     function setBusy(busy) {
@@ -203,6 +221,77 @@
       } finally {
         loadProfileBtn.disabled = false;
         saveProfileBtn.disabled = false;
+      }
+    }
+
+    function renderInventorySummary(calculations) {
+      inventorySummary.innerHTML = '';
+      if (!calculations) return;
+      const duration = calculations.duration_days || {};
+      const overview = document.createElement('div');
+      overview.className = 'citation';
+      overview.textContent = `Duration: water ${duration.water ?? 'n/a'} days, food ${duration.food ?? 'n/a'} days, power ${duration.power ?? 'n/a'} days`;
+      inventorySummary.appendChild(overview);
+      const gaps = calculations.gaps || [];
+      if (!gaps.length) {
+        const ok = document.createElement('div');
+        ok.className = 'citation';
+        ok.textContent = 'No critical inventory gaps for the current planning target.';
+        inventorySummary.appendChild(ok);
+        return;
+      }
+      for (const gap of gaps) {
+        const item = document.createElement('div');
+        item.className = `gap ${gap.severity === 'critical' ? 'critical' : ''}`;
+        item.textContent = `${gap.severity.toUpperCase()} ${gap.category}: ${gap.message} Shortfall ${gap.shortfall} ${gap.unit}.`;
+        inventorySummary.appendChild(item);
+      }
+    }
+
+    async function loadInventory() {
+      loadInventoryBtn.disabled = true;
+      saveInventoryBtn.disabled = true;
+      setTextStatus(inventoryStatus, 'Loading inventory...', 'status');
+      try {
+        const res = await fetch('/api/inventory');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Inventory request failed');
+        inventoryEditor.value = JSON.stringify(data.inventory, null, 2);
+        renderInventorySummary(data.calculations);
+        const state = data.status?.exists ? 'saved inventory loaded' : 'new inventory template loaded';
+        setTextStatus(inventoryStatus, `${state}: ${data.status?.path || ''}`, data.validation_errors?.length ? 'warn' : 'ok');
+      } catch (err) {
+        setTextStatus(inventoryStatus, `Inventory unavailable: ${err.message}`, 'warn');
+      } finally {
+        loadInventoryBtn.disabled = false;
+        saveInventoryBtn.disabled = false;
+      }
+    }
+
+    async function saveInventory() {
+      loadInventoryBtn.disabled = true;
+      saveInventoryBtn.disabled = true;
+      setTextStatus(inventoryStatus, 'Saving inventory...', 'status');
+      try {
+        const inventory = JSON.parse(inventoryEditor.value);
+        const res = await fetch('/api/inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inventory })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const errors = (data.validation_errors || [data.error || 'Save failed']).join('; ');
+          throw new Error(errors);
+        }
+        inventoryEditor.value = JSON.stringify(data.inventory, null, 2);
+        renderInventorySummary(data.calculations);
+        setTextStatus(inventoryStatus, `inventory saved: ${data.status?.path || ''}`, 'ok');
+      } catch (err) {
+        setTextStatus(inventoryStatus, `Inventory save failed: ${err.message}`, 'warn');
+      } finally {
+        loadInventoryBtn.disabled = false;
+        saveInventoryBtn.disabled = false;
       }
     }
 
@@ -360,11 +449,14 @@
     askLibraryBtn.addEventListener('click', askLibrary);
     loadProfileBtn.addEventListener('click', loadProfile);
     saveProfileBtn.addEventListener('click', saveProfile);
+    loadInventoryBtn.addEventListener('click', loadInventory);
+    saveInventoryBtn.addEventListener('click', saveInventory);
     loadRuntimeStatus();
     loadModels();
     loadRagStatus();
     loadLibrary();
     loadProfile();
+    loadInventory();
   </script>
 </body>
 </html>

@@ -22,6 +22,9 @@ data/chroma/library/
 data/guide/profile/household_profile.json
 data/guide/profile/*.local.json
 data/guide/profile/*.tmp
+data/guide/inventory/inventory.json
+data/guide/inventory/*.local.json
+data/guide/inventory/*.tmp
 tools/uv/
 tools/python/
 tools/zim-tools/

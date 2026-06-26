@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-06-26T00:00:00Z",
+  "notes": "",
+  "items": [
+    {
+      "id": "water_01",
+      "category": "water",
+      "name": "Stored drinking water",
+      "quantity": 0,
+      "unit": "gallon",
+      "location": "",
+      "priority": "critical",
+      "expires_on": "",
+      "gallons_per_unit": 1,
+      "notes": ""
+    },
+    {
+      "id": "food_01",
+      "category": "food",
+      "name": "Shelf stable food",
+      "quantity": 0,
+      "unit": "serving",
+      "location": "",
+      "priority": "critical",
+      "expires_on": "",
+      "calories_per_unit": 350,
+      "notes": ""
+    },
+    {
+      "id": "power_01",
+      "category": "power",
+      "name": "Battery storage",
+      "quantity": 0,
+      "unit": "watt_hour",
+      "location": "",
+      "priority": "high",
+      "expires_on": "",
+      "watt_hours_per_unit": 1,
+      "notes": ""
+    }
+  ]
+}

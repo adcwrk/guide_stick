@@ -158,6 +158,10 @@ HTTP Basic auth is not a TLS replacement. Keep LAN access on a trusted network u
 
 GUIDE stores household preparedness profile data under `data/guide/profile`. The schema and example template are tracked in git; the local household profile JSON file is ignored so private household details stay on the USB. The lightweight GUIDE WebUI exposes authenticated `GET /api/profile` and `POST /api/profile` endpoints and includes a profile editor backed by that schema.
 
+## GUIDE Preparedness Inventory
+
+GUIDE stores preparedness inventory data under `data/guide/inventory`. The schema and example template are tracked in git; the local inventory JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/inventory` and `POST /api/inventory` endpoints, calculates water, food, medication, and power gaps from the household profile, and displays critical inventory shortfalls.
+
 ## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
 
 ```

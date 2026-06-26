@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guide.local/schemas/inventory.schema.json",
+  "title": "GUIDE Preparedness Inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at", "items", "notes"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "notes": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "name", "quantity", "unit", "location", "priority", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "category": {
+          "type": "string",
+          "enum": [
+            "water",
+            "food",
+            "medical",
+            "medication",
+            "fuel",
+            "power",
+            "communications",
+            "shelter",
+            "sanitation",
+            "tools",
+            "other"
+          ]
+        },
+        "name": { "type": "string" },
+        "quantity": { "type": "number", "minimum": 0 },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "gallon",
+            "liter",
+            "bottle",
+            "serving",
+            "meal",
+            "calorie",
+            "day",
+            "dose",
+            "count",
+            "pound",
+            "ounce",
+            "can",
+            "watt_hour",
+            "kilowatt_hour",
+            "amp_hour",
+            "battery",
+            "other"
+          ]
+        },
+        "location": { "type": "string" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "expires_on": { "type": "string" },
+        "calories_per_unit": { "type": "number", "minimum": 0 },
+        "gallons_per_unit": { "type": "number", "minimum": 0 },
+        "watt_hours_per_unit": { "type": "number", "minimum": 0 },
+        "days_on_hand": { "type": "number", "minimum": 0 },
+        "person_id": { "type": "string" },
+        "fuel_type": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

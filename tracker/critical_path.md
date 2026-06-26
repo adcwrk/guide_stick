@@ -30,13 +30,12 @@ This file identifies the execution order that turns the current GUIDE USB build 
 
 ## Immediate Next Task
 
-T024: Define preparedness inventory schema and calculations.
+T025: Define incident records and operational timeline.
 
-Reason: T023 is complete with warnings. The next GUIDE platform blocker is inventory data and calculations that depend on household profile context.
+Reason: T024 is complete with warnings. The next GUIDE platform blocker is the incident record and timeline schema that depends on the profile and Ask Library foundations.
 
 ## Parallel Work That Does Not Block RAG
 
-- T024: Define preparedness inventory schema and calculations.
 - T025: Define incident records and operational timeline.
 - T026: Define communications center schema and templates.
 - T027: Decide map import/viewer strategy.
@@ -51,4 +50,5 @@ Reason: T023 is complete with warnings. The next GUIDE platform blocker is inven
 - T020 is complete with warnings: the WebUI exposes Ask Library with index readiness, citations, risk notes, fallback to normal chat, and auth-policy status.
 - T021 is complete with warnings: `scripts/check-rag-ops.sh` writes `data/rag/library_manifest.json` and `reports/rag_operations_report.md`; current checks report 15 pass, 2 warn, 0 fail. Warnings are deferred native ZIM extraction and one partial ZIM import record.
 - T023 is complete with warnings: the household profile schema, example template, authenticated `/api/profile` load/save endpoint, and WebUI JSON editor are implemented under `data/guide/profile`; richer form-based intake remains future UI refinement.
+- T024 is complete with warnings: the inventory schema, example template, authenticated `/api/inventory` load/save endpoint, WebUI JSON editor, and water/food/medication/power gap calculations are implemented under `data/guide/inventory`; richer category-specific inventory UI remains future refinement.
 - Offline map databases remain a separate import strategy under T027 because the large `.mbtiles` transfer previously stalled.

@@ -23,6 +23,10 @@ PROFILE_DIR = ROOT / "data" / "guide" / "profile"
 PROFILE_SCHEMA_PATH = PROFILE_DIR / "household_profile.schema.json"
 PROFILE_EXAMPLE_PATH = PROFILE_DIR / "household_profile.example.json"
 PROFILE_DATA_PATH = Path(os.environ.get("GUIDE_PROFILE_PATH") or PROFILE_DIR / "household_profile.json")
+INVENTORY_DIR = ROOT / "data" / "guide" / "inventory"
+INVENTORY_SCHEMA_PATH = INVENTORY_DIR / "inventory.schema.json"
+INVENTORY_EXAMPLE_PATH = INVENTORY_DIR / "inventory.example.json"
+INVENTORY_DATA_PATH = Path(os.environ.get("GUIDE_INVENTORY_PATH") or INVENTORY_DIR / "inventory.json")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 RAG_COLLECTION = os.environ.get("GUIDE_RAG_COLLECTION", "guide_library")
 EMBED_MODEL = os.environ.get("GUIDE_EMBED_MODEL", "nomic-embed-text")
@@ -211,6 +215,228 @@ def save_profile(profile):
     return []
 
 
+def load_inventory_schema():
+    return json.loads(INVENTORY_SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def inventory_template():
+    return json.loads(INVENTORY_EXAMPLE_PATH.read_text(encoding="utf-8"))
+
+
+def inventory_status():
+    return {
+        "schema": str(INVENTORY_SCHEMA_PATH),
+        "example": str(INVENTORY_EXAMPLE_PATH),
+        "path": str(INVENTORY_DATA_PATH),
+        "exists": INVENTORY_DATA_PATH.exists(),
+    }
+
+
+def load_inventory():
+    if INVENTORY_DATA_PATH.exists():
+        return json.loads(INVENTORY_DATA_PATH.read_text(encoding="utf-8"))
+    return inventory_template()
+
+
+def validate_inventory(inventory):
+    errors = []
+    if not isinstance(inventory, dict):
+        return ["inventory must be a JSON object"]
+    for key in ("schema_version", "updated_at", "items", "notes"):
+        if key not in inventory:
+            errors.append(f"missing required field: {key}")
+    if inventory.get("schema_version") != "1.0.0":
+        errors.append("schema_version must be 1.0.0")
+    items = inventory.get("items")
+    if not isinstance(items, list):
+        errors.append("items must be an array")
+        return errors
+    allowed_categories = {
+        "water", "food", "medical", "medication", "fuel", "power",
+        "communications", "shelter", "sanitation", "tools", "other",
+    }
+    required_item_fields = ("id", "category", "name", "quantity", "unit", "location", "priority", "notes")
+    for idx, item in enumerate(items):
+        if not isinstance(item, dict):
+            errors.append(f"items[{idx}] must be an object")
+            continue
+        for key in required_item_fields:
+            if key not in item:
+                errors.append(f"items[{idx}] missing required field: {key}")
+        if item.get("category") not in allowed_categories:
+            errors.append(f"items[{idx}].category is invalid")
+        quantity = item.get("quantity")
+        if not isinstance(quantity, (int, float)) or quantity < 0:
+            errors.append(f"items[{idx}].quantity must be a non-negative number")
+    return errors
+
+
+def save_inventory(inventory):
+    errors = validate_inventory(inventory)
+    if errors:
+        return errors
+    inventory["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    INVENTORY_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = INVENTORY_DATA_PATH.with_suffix(INVENTORY_DATA_PATH.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(inventory, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp_path.replace(INVENTORY_DATA_PATH)
+    return []
+
+
+def household_people_count(profile):
+    people = profile.get("people") if isinstance(profile, dict) else []
+    if isinstance(people, list) and people:
+        return len(people)
+    return 1
+
+
+def household_pet_count(profile):
+    pets = profile.get("pets") if isinstance(profile, dict) else []
+    if not isinstance(pets, list):
+        return 0
+    total = 0
+    for pet in pets:
+        if isinstance(pet, dict):
+            total += int(pet.get("count") or 0)
+    return total
+
+
+def planning_horizon_days(profile):
+    household = profile.get("household") if isinstance(profile, dict) else {}
+    days = household.get("planning_horizon_days") if isinstance(household, dict) else None
+    return days if isinstance(days, int) and days > 0 else 14
+
+
+def inventory_quantity(item, factor_key, default_units):
+    quantity = item.get("quantity") or 0
+    factor = item.get(factor_key)
+    if isinstance(factor, (int, float)) and factor > 0:
+        return quantity * factor
+    if item.get("unit") in default_units:
+        return quantity
+    return 0
+
+
+def calculate_inventory(profile, inventory):
+    items = inventory.get("items") if isinstance(inventory, dict) else []
+    if not isinstance(items, list):
+        items = []
+    people = household_people_count(profile)
+    pets = household_pet_count(profile)
+    days = planning_horizon_days(profile)
+    water_required = (people * 1.0 + pets * 0.25) * days
+    food_required = people * 2000 * days
+    water_available = 0.0
+    food_calories = 0.0
+    power_wh = 0.0
+    medication_inventory = {}
+    category_counts = {}
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        category = item.get("category") or "other"
+        category_counts[category] = category_counts.get(category, 0) + 1
+        if category == "water":
+            water_available += inventory_quantity(item, "gallons_per_unit", {"gallon"})
+            if item.get("unit") == "liter":
+                water_available += (item.get("quantity") or 0) * 0.264172
+        elif category == "food":
+            if isinstance(item.get("calories_per_unit"), (int, float)):
+                food_calories += (item.get("quantity") or 0) * item["calories_per_unit"]
+            elif item.get("unit") == "calorie":
+                food_calories += item.get("quantity") or 0
+        elif category == "power":
+            power_wh += inventory_quantity(item, "watt_hours_per_unit", {"watt_hour"})
+            if item.get("unit") == "kilowatt_hour":
+                power_wh += (item.get("quantity") or 0) * 1000
+        elif category == "medication":
+            key = (item.get("person_id") or "", item.get("name") or "")
+            medication_inventory[key] = max(medication_inventory.get(key, 0), item.get("days_on_hand") or 0)
+
+    critical_loads = (((profile.get("power") or {}).get("critical_loads") or []) if isinstance(profile, dict) else [])
+    daily_wh = 0.0
+    for load in critical_loads:
+        if isinstance(load, dict):
+            daily_wh += (load.get("watts") or 0) * (load.get("hours_per_day") or 0)
+
+    gaps = []
+    def add_gap(category, severity, message, required, available, unit):
+        gaps.append({
+            "category": category,
+            "severity": severity,
+            "message": message,
+            "required": round(required, 2),
+            "available": round(available, 2),
+            "shortfall": round(max(required - available, 0), 2),
+            "unit": unit,
+        })
+
+    if water_available < water_required:
+        severity = "critical" if water_available < water_required * 0.5 else "high"
+        add_gap("water", severity, "Stored water is below the planning target.", water_required, water_available, "gallons")
+    if food_calories < food_required:
+        severity = "critical" if food_calories < food_required * 0.5 else "high"
+        add_gap("food", severity, "Food calories are below the planning target.", food_required, food_calories, "calories")
+
+    medications = (((profile.get("medical") or {}).get("medications") or []) if isinstance(profile, dict) else [])
+    for med in medications:
+        if not isinstance(med, dict):
+            continue
+        key = (med.get("person_id") or "", med.get("name") or "")
+        profile_days = med.get("days_on_hand") or 0
+        inventory_days = medication_inventory.get(key, 0)
+        available_days = max(profile_days, inventory_days)
+        if available_days < days:
+            gaps.append({
+                "category": "medication",
+                "severity": "critical",
+                "message": f"Medication supply below target: {med.get('name') or 'unnamed medication'}",
+                "required": days,
+                "available": available_days,
+                "shortfall": round(days - available_days, 2),
+                "unit": "days",
+            })
+
+    power_days = power_wh / daily_wh if daily_wh > 0 else None
+    if daily_wh > 0 and power_days < days:
+        gaps.append({
+            "category": "power",
+            "severity": "high" if power_days and power_days >= 1 else "critical",
+            "message": "Backup power is below the critical load planning target.",
+            "required": round(daily_wh * days, 2),
+            "available": round(power_wh, 2),
+            "shortfall": round(max(daily_wh * days - power_wh, 0), 2),
+            "unit": "watt_hours",
+        })
+
+    severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    gaps.sort(key=lambda item: (severity_order.get(item["severity"], 9), item["category"]))
+    return {
+        "profile_context": {
+            "people": people,
+            "pets": pets,
+            "planning_horizon_days": days,
+        },
+        "requirements": {
+            "water_gallons": round(water_required, 2),
+            "food_calories": round(food_required, 2),
+            "critical_power_watt_hours": round(daily_wh * days, 2),
+        },
+        "available": {
+            "water_gallons": round(water_available, 2),
+            "food_calories": round(food_calories, 2),
+            "power_watt_hours": round(power_wh, 2),
+        },
+        "duration_days": {
+            "water": round(water_available / (people * 1.0 + pets * 0.25), 2) if people or pets else None,
+            "food": round(food_calories / (people * 2000), 2) if people else None,
+            "power": round(power_days, 2) if power_days is not None else None,
+        },
+        "category_counts": category_counts,
+        "gaps": gaps,
+    }
+
+
 def runtime_status():
     return {
         "ollama_url": OLLAMA_URL,
@@ -222,6 +448,7 @@ def runtime_status():
             "max_top_k": MAX_TOP_K,
         },
         "profile": profile_status(),
+        "inventory": inventory_status(),
         "auth": {
             "required_by_policy": AUTH_REQUIRED,
             "enforced_by_webui": AUTH_ENFORCED,
@@ -498,6 +725,21 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(500, {"error": str(exc)})
             return
 
+        if self.path == "/api/inventory":
+            try:
+                profile = load_profile()
+                inventory = load_inventory()
+                self.send_json(200, {
+                    "inventory": inventory,
+                    "schema": load_inventory_schema(),
+                    "status": inventory_status(),
+                    "validation_errors": validate_inventory(inventory),
+                    "calculations": calculate_inventory(profile, inventory),
+                })
+            except Exception as exc:
+                self.send_json(500, {"error": str(exc)})
+            return
+
         if self.path == "/library" or self.path.startswith("/library/"):
             requested = self.path.removeprefix("/library").lstrip("/")
             target = safe_child(LIBRARY_DIR, requested)
@@ -535,13 +777,26 @@ class Handler(BaseHTTPRequestHandler):
         if not self.require_auth():
             return
 
-        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile"):
+        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile", "/api/inventory"):
             self.send_error(404)
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
             incoming = json.loads(self.rfile.read(length).decode("utf-8"))
-            if self.path == "/api/profile":
+            if self.path == "/api/inventory":
+                inventory = incoming.get("inventory") if isinstance(incoming, dict) and "inventory" in incoming else incoming
+                errors = save_inventory(inventory)
+                if errors:
+                    self.send_json(400, {"error": "inventory validation failed", "validation_errors": errors})
+                    return
+                saved = load_inventory()
+                self.send_json(200, {
+                    "inventory": saved,
+                    "status": inventory_status(),
+                    "validation_errors": [],
+                    "calculations": calculate_inventory(load_profile(), saved),
+                })
+            elif self.path == "/api/profile":
                 profile = incoming.get("profile") if isinstance(incoming, dict) and "profile" in incoming else incoming
                 errors = save_profile(profile)
                 if errors:
