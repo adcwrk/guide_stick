@@ -1,6 +1,6 @@
 # RAG Operations Report
 
-Generated: 2026-06-26T07:55:28Z
+Generated: 2026-06-27T07:03:07Z
 
 Status: `complete_with_warnings`
 

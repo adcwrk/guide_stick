@@ -31,6 +31,12 @@ data/guide/incidents/*.tmp
 data/guide/communications/communications.json
 data/guide/communications/*.local.json
 data/guide/communications/*.tmp
+data/guide/situational_awareness/situational_awareness.json
+data/guide/situational_awareness/*.local.json
+data/guide/situational_awareness/*.tmp
+data/guide/maps/*.mbtiles
+data/guide/maps/*.pmtiles
+data/guide/maps/*.tmp
 tools/uv/
 tools/python/
 tools/zim-tools/

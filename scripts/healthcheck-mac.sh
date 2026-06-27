@@ -55,7 +55,7 @@ ollama_bin() {
 [ -d "$USB_DIR" ] && record PASS "USB mounted" "$USB_DIR exists" || record FAIL "USB mounted" "$USB_DIR missing"
 [ -w "$USB_DIR" ] && record PASS "USB writable" "$USB_DIR is writable" || record FAIL "USB writable" "$USB_DIR is not writable"
 
-for dir in config documents logs backups reports anythingllm_data ollama data/chroma data/rag/corpus data/guide/profile data/guide/inventory data/guide/incidents data/guide/communications data/anythingllm data/openwebui; do
+for dir in config documents logs backups reports anythingllm_data ollama data/chroma data/rag/corpus data/guide/profile data/guide/inventory data/guide/incidents data/guide/communications data/guide/situational_awareness data/guide/maps data/anythingllm data/openwebui; do
   [ -d "$USB_DIR/$dir" ] && record PASS "Required directory: $dir" "present" || record FAIL "Required directory: $dir" "missing"
 done
 
@@ -70,6 +70,7 @@ touch "$USB_DIR/data/chroma/.healthcheck_write_test" 2>/dev/null && rm -f "$USB_
 [ -s "$USB_DIR/data/guide/inventory/inventory.schema.json" ] && record PASS "GUIDE inventory schema" "$USB_DIR/data/guide/inventory/inventory.schema.json" || record FAIL "GUIDE inventory schema" "missing"
 [ -s "$USB_DIR/data/guide/incidents/incidents.schema.json" ] && record PASS "GUIDE incident schema" "$USB_DIR/data/guide/incidents/incidents.schema.json" || record FAIL "GUIDE incident schema" "missing"
 [ -s "$USB_DIR/data/guide/communications/communications.schema.json" ] && record PASS "GUIDE communications schema" "$USB_DIR/data/guide/communications/communications.schema.json" || record FAIL "GUIDE communications schema" "missing"
+[ -s "$USB_DIR/data/guide/situational_awareness/situational_awareness.schema.json" ] && record PASS "GUIDE situational awareness schema" "$USB_DIR/data/guide/situational_awareness/situational_awareness.schema.json" || record FAIL "GUIDE situational awareness schema" "missing"
 [ -x "$USB_DIR/scripts/check-rag-ops.sh" ] && record PASS "Executable: scripts/check-rag-ops.sh" "yes" || record WARN "Executable: scripts/check-rag-ops.sh" "not executable; run with bash if exFAT clears mode bits"
 
 if "$USB_DIR/scripts/check-rag-ops.sh" >>"$LOG_FILE" 2>&1; then

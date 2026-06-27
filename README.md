@@ -170,6 +170,10 @@ GUIDE stores incident records and operational timelines under `data/guide/incide
 
 GUIDE stores communications planning data under `data/guide/communications`. The schema and example template are tracked in git; the local communications JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/communications` and `POST /api/communications` endpoints for contacts, communications channels, message templates, and message logs, including future-ready Meshtastic channel planning.
 
+## GUIDE Situational Awareness
+
+GUIDE stores offline map and resource context under `data/guide/situational_awareness`, with large future map files reserved under `data/guide/maps`. The schema and example template are tracked in git; the local situational awareness JSON file and large map packages are ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/situational-awareness` and `POST /api/situational-awareness` endpoints for hazards, resources, shelters, hospitals, routes, and communications infrastructure.
+
 ## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
 
 ```

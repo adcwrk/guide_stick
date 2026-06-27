@@ -35,6 +35,10 @@ COMMUNICATIONS_DIR = ROOT / "data" / "guide" / "communications"
 COMMUNICATIONS_SCHEMA_PATH = COMMUNICATIONS_DIR / "communications.schema.json"
 COMMUNICATIONS_EXAMPLE_PATH = COMMUNICATIONS_DIR / "communications.example.json"
 COMMUNICATIONS_DATA_PATH = Path(os.environ.get("GUIDE_COMMUNICATIONS_PATH") or COMMUNICATIONS_DIR / "communications.json")
+SITUATIONAL_DIR = ROOT / "data" / "guide" / "situational_awareness"
+SITUATIONAL_SCHEMA_PATH = SITUATIONAL_DIR / "situational_awareness.schema.json"
+SITUATIONAL_EXAMPLE_PATH = SITUATIONAL_DIR / "situational_awareness.example.json"
+SITUATIONAL_DATA_PATH = Path(os.environ.get("GUIDE_SITUATIONAL_AWARENESS_PATH") or SITUATIONAL_DIR / "situational_awareness.json")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 RAG_COLLECTION = os.environ.get("GUIDE_RAG_COLLECTION", "guide_library")
 EMBED_MODEL = os.environ.get("GUIDE_EMBED_MODEL", "nomic-embed-text")
@@ -595,6 +599,153 @@ def summarize_communications(communications_doc):
     }
 
 
+def load_situational_schema():
+    return json.loads(SITUATIONAL_SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def situational_template():
+    return json.loads(SITUATIONAL_EXAMPLE_PATH.read_text(encoding="utf-8"))
+
+
+def situational_status():
+    return {
+        "schema": str(SITUATIONAL_SCHEMA_PATH),
+        "example": str(SITUATIONAL_EXAMPLE_PATH),
+        "path": str(SITUATIONAL_DATA_PATH),
+        "exists": SITUATIONAL_DATA_PATH.exists(),
+    }
+
+
+def load_situational_awareness():
+    if SITUATIONAL_DATA_PATH.exists():
+        return json.loads(SITUATIONAL_DATA_PATH.read_text(encoding="utf-8"))
+    return situational_template()
+
+
+def validate_situational_awareness(situational_doc):
+    errors = []
+    if not isinstance(situational_doc, dict):
+        return ["situational awareness must be a JSON object"]
+    for key in ("schema_version", "updated_at", "map_strategy", "areas", "hazards", "resources", "routes", "communications_infrastructure", "notes"):
+        if key not in situational_doc:
+            errors.append(f"missing required field: {key}")
+    if situational_doc.get("schema_version") != "1.0.0":
+        errors.append("schema_version must be 1.0.0")
+    map_strategy = situational_doc.get("map_strategy")
+    if not isinstance(map_strategy, dict):
+        errors.append("map_strategy must be an object")
+    else:
+        if map_strategy.get("viewer") not in {"none", "geojson_table", "mbtiles_future", "pmtiles_future", "other"}:
+            errors.append("map_strategy.viewer is invalid")
+        if map_strategy.get("import_status") not in {"not_started", "planned", "partial", "available", "deferred"}:
+            errors.append("map_strategy.import_status is invalid")
+    for key in ("areas", "hazards", "resources", "routes", "communications_infrastructure"):
+        if key in situational_doc and not isinstance(situational_doc[key], list):
+            errors.append(f"{key} must be an array")
+    allowed_feature_types = {
+        "wildfire", "flood", "severe_weather", "road_closure", "power_outage", "shelter", "hospital",
+        "clinic", "pharmacy", "water", "food", "fuel", "charging", "radio_repeater", "mesh_node",
+        "rally_point", "supply_cache", "other",
+    }
+    allowed_feature_statuses = {"unknown", "available", "limited", "unavailable", "active", "cleared", "planned"}
+    allowed_priorities = {"low", "medium", "high", "critical"}
+    allowed_route_types = {"evacuation", "supply", "medical", "check_in", "alternate", "other"}
+    allowed_route_statuses = {"unknown", "open", "limited", "closed", "planned"}
+    for collection_name in ("hazards", "resources", "communications_infrastructure"):
+        features = situational_doc.get(collection_name) if isinstance(situational_doc.get(collection_name), list) else []
+        for idx, feature in enumerate(features):
+            if not isinstance(feature, dict):
+                errors.append(f"{collection_name}[{idx}] must be an object")
+                continue
+            for key in ("id", "name", "feature_type", "status", "priority", "location", "address_or_description", "source", "notes"):
+                if key not in feature:
+                    errors.append(f"{collection_name}[{idx}] missing required field: {key}")
+            if feature.get("feature_type") not in allowed_feature_types:
+                errors.append(f"{collection_name}[{idx}].feature_type is invalid")
+            if feature.get("status") not in allowed_feature_statuses:
+                errors.append(f"{collection_name}[{idx}].status is invalid")
+            if feature.get("priority") not in allowed_priorities:
+                errors.append(f"{collection_name}[{idx}].priority is invalid")
+            if "location" in feature and not isinstance(feature["location"], dict):
+                errors.append(f"{collection_name}[{idx}].location must be an object")
+    routes = situational_doc.get("routes") if isinstance(situational_doc.get("routes"), list) else []
+    for idx, route in enumerate(routes):
+        if not isinstance(route, dict):
+            errors.append(f"routes[{idx}] must be an object")
+            continue
+        for key in ("id", "name", "route_type", "status", "start", "end", "waypoints", "source", "notes"):
+            if key not in route:
+                errors.append(f"routes[{idx}] missing required field: {key}")
+        if route.get("route_type") not in allowed_route_types:
+            errors.append(f"routes[{idx}].route_type is invalid")
+        if route.get("status") not in allowed_route_statuses:
+            errors.append(f"routes[{idx}].status is invalid")
+        if "waypoints" in route and not isinstance(route["waypoints"], list):
+            errors.append(f"routes[{idx}].waypoints must be an array")
+    return errors
+
+
+def save_situational_awareness(situational_doc):
+    errors = validate_situational_awareness(situational_doc)
+    if errors:
+        return errors
+    situational_doc["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    SITUATIONAL_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = SITUATIONAL_DATA_PATH.with_suffix(SITUATIONAL_DATA_PATH.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(situational_doc, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp_path.replace(SITUATIONAL_DATA_PATH)
+    return []
+
+
+def summarize_situational_awareness(situational_doc):
+    if not isinstance(situational_doc, dict):
+        situational_doc = {}
+    hazards = situational_doc.get("hazards") if isinstance(situational_doc.get("hazards"), list) else []
+    resources = situational_doc.get("resources") if isinstance(situational_doc.get("resources"), list) else []
+    routes = situational_doc.get("routes") if isinstance(situational_doc.get("routes"), list) else []
+    comms = situational_doc.get("communications_infrastructure") if isinstance(situational_doc.get("communications_infrastructure"), list) else []
+    areas = situational_doc.get("areas") if isinstance(situational_doc.get("areas"), list) else []
+    by_hazard_status = {}
+    by_resource_type = {}
+    by_route_status = {}
+    for hazard in hazards:
+        if isinstance(hazard, dict):
+            status = hazard.get("status") or "unknown"
+            by_hazard_status[status] = by_hazard_status.get(status, 0) + 1
+    for resource in resources:
+        if isinstance(resource, dict):
+            feature_type = resource.get("feature_type") or "unknown"
+            by_resource_type[feature_type] = by_resource_type.get(feature_type, 0) + 1
+    for route in routes:
+        if isinstance(route, dict):
+            status = route.get("status") or "unknown"
+            by_route_status[status] = by_route_status.get(status, 0) + 1
+    critical_features = []
+    for collection_name, items in (("hazard", hazards), ("resource", resources), ("communications", comms)):
+        for item in items:
+            if isinstance(item, dict) and item.get("priority") == "critical":
+                critical_features.append({
+                    "collection": collection_name,
+                    "id": item.get("id") or "",
+                    "name": item.get("name") or "",
+                    "feature_type": item.get("feature_type") or "",
+                    "status": item.get("status") or "",
+                })
+    map_strategy = situational_doc.get("map_strategy") if isinstance(situational_doc.get("map_strategy"), dict) else {}
+    return {
+        "areas": len(areas),
+        "hazards": len(hazards),
+        "resources": len(resources),
+        "routes": len(routes),
+        "communications_infrastructure": len(comms),
+        "map_strategy": map_strategy,
+        "by_hazard_status": by_hazard_status,
+        "by_resource_type": by_resource_type,
+        "by_route_status": by_route_status,
+        "critical_features": critical_features[:8],
+    }
+
+
 def household_people_count(profile):
     people = profile.get("people") if isinstance(profile, dict) else []
     if isinstance(people, list) and people:
@@ -763,6 +914,7 @@ def runtime_status():
         "inventory": inventory_status(),
         "incidents": incidents_status(),
         "communications": communications_status(),
+        "situational_awareness": situational_status(),
         "auth": {
             "required_by_policy": AUTH_REQUIRED,
             "enforced_by_webui": AUTH_ENFORCED,
@@ -1082,6 +1234,20 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(500, {"error": str(exc)})
             return
 
+        if self.path == "/api/situational-awareness":
+            try:
+                situational_doc = load_situational_awareness()
+                self.send_json(200, {
+                    "situational_awareness": situational_doc,
+                    "schema": load_situational_schema(),
+                    "status": situational_status(),
+                    "validation_errors": validate_situational_awareness(situational_doc),
+                    "summary": summarize_situational_awareness(situational_doc),
+                })
+            except Exception as exc:
+                self.send_json(500, {"error": str(exc)})
+            return
+
         if self.path == "/library" or self.path.startswith("/library/"):
             requested = self.path.removeprefix("/library").lstrip("/")
             target = safe_child(LIBRARY_DIR, requested)
@@ -1119,7 +1285,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.require_auth():
             return
 
-        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile", "/api/inventory", "/api/incidents", "/api/communications"):
+        if self.path not in ("/api/chat", "/api/ask-library", "/api/profile", "/api/inventory", "/api/incidents", "/api/communications", "/api/situational-awareness"):
             self.send_error(404)
             return
         try:
@@ -1163,6 +1329,19 @@ class Handler(BaseHTTPRequestHandler):
                     "status": communications_status(),
                     "validation_errors": [],
                     "summary": summarize_communications(saved),
+                })
+            elif self.path == "/api/situational-awareness":
+                situational_doc = incoming.get("situational_awareness") if isinstance(incoming, dict) and "situational_awareness" in incoming else incoming
+                errors = save_situational_awareness(situational_doc)
+                if errors:
+                    self.send_json(400, {"error": "situational awareness validation failed", "validation_errors": errors})
+                    return
+                saved = load_situational_awareness()
+                self.send_json(200, {
+                    "situational_awareness": saved,
+                    "status": situational_status(),
+                    "validation_errors": [],
+                    "summary": summarize_situational_awareness(saved),
                 })
             elif self.path == "/api/profile":
                 profile = incoming.get("profile") if isinstance(incoming, dict) and "profile" in incoming else incoming

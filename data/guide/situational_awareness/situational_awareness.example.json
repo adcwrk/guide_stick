@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-06-27T00:00:00Z",
+  "map_strategy": {
+    "viewer": "geojson_table",
+    "offline_map_path": "data/guide/maps",
+    "import_status": "planned",
+    "notes": "Represent operational map context as JSON first. Store future MBTiles or PMTiles files under data/guide/maps after a smaller region/export strategy is selected."
+  },
+  "areas": [
+    {
+      "id": "area_001",
+      "name": "Primary operating area",
+      "area_type": "home_area",
+      "center": {
+        "latitude": null,
+        "longitude": null
+      },
+      "radius_miles": 5,
+      "notes": ""
+    }
+  ],
+  "hazards": [
+    {
+      "id": "hazard_001",
+      "name": "Example road closure",
+      "feature_type": "road_closure",
+      "status": "unknown",
+      "priority": "medium",
+      "location": {
+        "latitude": null,
+        "longitude": null
+      },
+      "address_or_description": "",
+      "source": "manual",
+      "notes": ""
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource_001",
+      "name": "Example shelter",
+      "feature_type": "shelter",
+      "status": "unknown",
+      "priority": "high",
+      "location": {
+        "latitude": null,
+        "longitude": null
+      },
+      "address_or_description": "",
+      "source": "manual",
+      "notes": ""
+    }
+  ],
+  "routes": [
+    {
+      "id": "route_001",
+      "name": "Example evacuation route",
+      "route_type": "evacuation",
+      "status": "unknown",
+      "start": {
+        "latitude": null,
+        "longitude": null
+      },
+      "end": {
+        "latitude": null,
+        "longitude": null
+      },
+      "waypoints": [],
+      "source": "manual",
+      "notes": ""
+    }
+  ],
+  "communications_infrastructure": [
+    {
+      "id": "comm_001",
+      "name": "Example mesh node",
+      "feature_type": "mesh_node",
+      "status": "planned",
+      "priority": "medium",
+      "location": {
+        "latitude": null,
+        "longitude": null
+      },
+      "address_or_description": "",
+      "source": "manual",
+      "notes": ""
+    }
+  ],
+  "notes": ""
+}

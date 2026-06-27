@@ -32,6 +32,7 @@
     .inventory-editor { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .incident-editor { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .communications-editor { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    .situational-editor { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
     .gap { border-left: 3px solid #ffd479; padding: 8px 10px; background: #10161d; border-radius: 4px; }
     .gap.critical { border-left-color: #ff6b6b; }
     .timeline { border-left: 3px solid #7ee787; padding: 8px 10px; background: #10161d; border-radius: 4px; }
@@ -111,6 +112,16 @@
         <button id="saveCommunications">Save Communications</button>
       </div>
     </section>
+    <section class="panel">
+      <h2 style="margin-top: 0; font-size: 18px;">Situational Awareness</h2>
+      <div id="situationalStatus" class="status">Checking map context...</div>
+      <div id="situationalSummary" class="citations"></div>
+      <textarea id="situationalEditor" class="situational-editor" spellcheck="false"></textarea>
+      <div class="controls">
+        <button id="loadSituational">Load Map Context</button>
+        <button id="saveSituational">Save Map Context</button>
+      </div>
+    </section>
     <section class="panel status" id="securityPanel">
       <span id="securityStatus">Checking security policy...</span>
     </section>
@@ -153,6 +164,11 @@
     const communicationsEditor = document.getElementById('communicationsEditor');
     const loadCommunicationsBtn = document.getElementById('loadCommunications');
     const saveCommunicationsBtn = document.getElementById('saveCommunications');
+    const situationalStatus = document.getElementById('situationalStatus');
+    const situationalSummary = document.getElementById('situationalSummary');
+    const situationalEditor = document.getElementById('situationalEditor');
+    const loadSituationalBtn = document.getElementById('loadSituational');
+    const saveSituationalBtn = document.getElementById('saveSituational');
     const appState = { modelsReady: false, ragReady: false, busy: false };
 
     function setBusy(busy) {
@@ -473,6 +489,79 @@
       }
     }
 
+    function renderSituationalSummary(summary) {
+      situationalSummary.innerHTML = '';
+      if (!summary) return;
+      const overview = document.createElement('div');
+      overview.className = 'citation';
+      const mapStrategy = summary.map_strategy || {};
+      const hazardStatus = Object.entries(summary.by_hazard_status || {}).map(([key, value]) => `${key}: ${value}`).join(', ') || 'none';
+      const routeStatus = Object.entries(summary.by_route_status || {}).map(([key, value]) => `${key}: ${value}`).join(', ') || 'none';
+      overview.textContent = `Map: ${mapStrategy.viewer || 'none'} (${mapStrategy.import_status || 'unknown'}); areas: ${summary.areas || 0}; hazards: ${summary.hazards || 0}; resources: ${summary.resources || 0}; routes: ${summary.routes || 0}; comms: ${summary.communications_infrastructure || 0}; hazards: ${hazardStatus}; routes: ${routeStatus}`;
+      situationalSummary.appendChild(overview);
+      const critical = summary.critical_features || [];
+      if (!critical.length) {
+        const empty = document.createElement('div');
+        empty.className = 'citation';
+        empty.textContent = 'No critical map features recorded.';
+        situationalSummary.appendChild(empty);
+        return;
+      }
+      for (const feature of critical) {
+        const item = document.createElement('div');
+        item.className = 'message-log';
+        item.textContent = `${feature.collection || 'feature'} ${feature.name || feature.id || ''}: ${feature.feature_type || ''} (${feature.status || 'unknown'})`;
+        situationalSummary.appendChild(item);
+      }
+    }
+
+    async function loadSituational() {
+      loadSituationalBtn.disabled = true;
+      saveSituationalBtn.disabled = true;
+      setTextStatus(situationalStatus, 'Loading map context...', 'status');
+      try {
+        const res = await fetch('/api/situational-awareness');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Map context request failed');
+        situationalEditor.value = JSON.stringify(data.situational_awareness, null, 2);
+        renderSituationalSummary(data.summary);
+        const state = data.status?.exists ? 'saved map context loaded' : 'new map context template loaded';
+        setTextStatus(situationalStatus, `${state}: ${data.status?.path || ''}`, data.validation_errors?.length ? 'warn' : 'ok');
+      } catch (err) {
+        setTextStatus(situationalStatus, `Map context unavailable: ${err.message}`, 'warn');
+      } finally {
+        loadSituationalBtn.disabled = false;
+        saveSituationalBtn.disabled = false;
+      }
+    }
+
+    async function saveSituational() {
+      loadSituationalBtn.disabled = true;
+      saveSituationalBtn.disabled = true;
+      setTextStatus(situationalStatus, 'Saving map context...', 'status');
+      try {
+        const situationalAwareness = JSON.parse(situationalEditor.value);
+        const res = await fetch('/api/situational-awareness', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ situational_awareness: situationalAwareness })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const errors = (data.validation_errors || [data.error || 'Save failed']).join('; ');
+          throw new Error(errors);
+        }
+        situationalEditor.value = JSON.stringify(data.situational_awareness, null, 2);
+        renderSituationalSummary(data.summary);
+        setTextStatus(situationalStatus, `map context saved: ${data.status?.path || ''}`, 'ok');
+      } catch (err) {
+        setTextStatus(situationalStatus, `Map context save failed: ${err.message}`, 'warn');
+      } finally {
+        loadSituationalBtn.disabled = false;
+        saveSituationalBtn.disabled = false;
+      }
+    }
+
     async function loadModels() {
       statusEl.textContent = 'Checking Ollama...';
       modelSelect.innerHTML = '';
@@ -633,6 +722,8 @@
     saveIncidentsBtn.addEventListener('click', saveIncidents);
     loadCommunicationsBtn.addEventListener('click', loadCommunications);
     saveCommunicationsBtn.addEventListener('click', saveCommunications);
+    loadSituationalBtn.addEventListener('click', loadSituational);
+    saveSituationalBtn.addEventListener('click', saveSituational);
     loadRuntimeStatus();
     loadModels();
     loadRagStatus();
@@ -641,6 +732,7 @@
     loadInventory();
     loadIncidents();
     loadCommunications();
+    loadSituational();
   </script>
 </body>
 </html>

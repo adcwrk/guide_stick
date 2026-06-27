@@ -81,6 +81,16 @@
       "notes": "Stores the JSON Schema, example template, and local communications.json data file used for contacts, channels, message templates, and message logs."
     },
     {
+      "name": "guide-situational-awareness",
+      "role": "offline_map_and_resource_context_store",
+      "default_port": null,
+      "default_bind": "local_storage",
+      "remote_default": false,
+      "data_path": "data/guide/situational_awareness",
+      "auth": "protected_by_guide_webui_auth",
+      "notes": "Stores the JSON Schema, example template, and local situational_awareness.json data file used for hazards, resources, shelters, hospitals, routes, and communications infrastructure. Large offline map files belong under data/guide/maps."
+    },
+    {
       "name": "chromadb",
       "role": "vector_store",
       "default_port": null,

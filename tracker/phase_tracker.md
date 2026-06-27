@@ -8,7 +8,7 @@
 | Phase 2 | Remote LAN GUI config | Complete | `config/portable.env.example`, `config/services.json`, `reports/remote_lan_gui_configuration.md` |
 | Phase 2 | Health checks and backups | Complete | `scripts/healthcheck-*.sh`, `scripts/backup-portable.sh` |
 | Phase 3 | GUIDE USB validation | Complete with runtime warnings | `reports/healthcheck_report.md` |
-| Future | GUIDE full platform service | Not started | Backlog epic E14 |
+| Future | GUIDE full platform service | Reserved path complete | `data/guide`, `config/services.json`, `reports/guide_path_report.md` |
 | Future | GUIDE lightweight WebUI foundation | Complete with Warnings | `scripts/guide-webui.py`, `data/guide_webui/index.html`, `reports/guide_webui_auth_report.md` |
 | Future | Offline library UI and RAG | RAG critical path complete with warnings | Backlog epic E15; `reports/iiab_library_import_report.md`; `reports/rag_corpus_extraction_report.md`; `reports/rag_index_report.md`; `reports/rag_orchestration_report.md`; `reports/ask_library_ui_report.md`; `reports/rag_operations_report.md`; `tracker/critical_path.md` |
-| Future | GUIDE preparedness and operations platform | Critical path active: T027 next | Backlog epic E16; `reports/guide_product_vision.md`; `reports/household_profile_schema_report.md`; `reports/inventory_schema_report.md`; `reports/incident_records_report.md`; `reports/communications_center_report.md` |
+| Future | GUIDE preparedness and operations platform | Tracked critical path complete with warnings | Backlog epic E16; `reports/guide_product_vision.md`; `reports/household_profile_schema_report.md`; `reports/inventory_schema_report.md`; `reports/incident_records_report.md`; `reports/communications_center_report.md`; `reports/situational_awareness_report.md` |

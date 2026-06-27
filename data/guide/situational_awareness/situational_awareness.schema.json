@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guide.local/schemas/situational_awareness.schema.json",
+  "title": "GUIDE Situational Awareness Context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at", "map_strategy", "areas", "hazards", "resources", "routes", "communications_infrastructure", "notes"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "map_strategy": { "$ref": "#/$defs/map_strategy" },
+    "areas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/area" }
+    },
+    "hazards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/map_feature" }
+    },
+    "resources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/map_feature" }
+    },
+    "routes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/route" }
+    },
+    "communications_infrastructure": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/map_feature" }
+    },
+    "notes": { "type": "string" }
+  },
+  "$defs": {
+    "map_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["viewer", "offline_map_path", "import_status", "notes"],
+      "properties": {
+        "viewer": { "type": "string", "enum": ["none", "geojson_table", "mbtiles_future", "pmtiles_future", "other"] },
+        "offline_map_path": { "type": "string" },
+        "import_status": { "type": "string", "enum": ["not_started", "planned", "partial", "available", "deferred"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "area_type", "center", "radius_miles", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string" },
+        "area_type": { "type": "string", "enum": ["home_area", "evacuation_zone", "service_area", "rally_point_area", "other"] },
+        "center": { "$ref": "#/$defs/point" },
+        "radius_miles": { "type": "number", "minimum": 0 },
+        "notes": { "type": "string" }
+      }
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["latitude", "longitude"],
+      "properties": {
+        "latitude": { "type": ["number", "null"], "minimum": -90, "maximum": 90 },
+        "longitude": { "type": ["number", "null"], "minimum": -180, "maximum": 180 }
+      }
+    },
+    "map_feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "feature_type", "status", "priority", "location", "address_or_description", "source", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string" },
+        "feature_type": {
+          "type": "string",
+          "enum": [
+            "wildfire", "flood", "severe_weather", "road_closure", "power_outage", "shelter", "hospital",
+            "clinic", "pharmacy", "water", "food", "fuel", "charging", "radio_repeater", "mesh_node",
+            "rally_point", "supply_cache", "other"
+          ]
+        },
+        "status": { "type": "string", "enum": ["unknown", "available", "limited", "unavailable", "active", "cleared", "planned"] },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "location": { "$ref": "#/$defs/point" },
+        "address_or_description": { "type": "string" },
+        "source": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "route_type", "status", "start", "end", "waypoints", "source", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string" },
+        "route_type": { "type": "string", "enum": ["evacuation", "supply", "medical", "check_in", "alternate", "other"] },
+        "status": { "type": "string", "enum": ["unknown", "open", "limited", "closed", "planned"] },
+        "start": { "$ref": "#/$defs/point" },
+        "end": { "$ref": "#/$defs/point" },
+        "waypoints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/point" }
+        },
+        "source": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
