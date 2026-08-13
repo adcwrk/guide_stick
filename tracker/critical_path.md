@@ -1,37 +1,45 @@
 # GUIDE Critical Path
 
-Generated: 2026-06-21
+Updated: 2026-08-12
 
-This file identifies the execution order that turns the current GUIDE USB build into a usable offline emergency knowledge and RAG platform.
+This file identifies the execution order that turns the GUIDE USB build into a usable offline emergency knowledge, RAG, model, documentation, and tester-delivery platform.
 
 ## Current Critical Path
 
 | Order | Task | Status | Why It Is Critical |
 |---:|---|---|---|
-| 1 | T008 Ollama backend | Complete | Required model runtime for chat and embeddings. |
-| 2 | T016 Library UI | Complete with Warnings | Establishes local library access and source URLs; full search remains future enhancement. |
-| 3 | T017 ZIM import | Complete with Warnings | Provides the trusted offline source corpus. |
-| 4 | T028 Pull `nomic-embed-text` | Complete | Required to generate embeddings offline. |
-| 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; USB-local `zimdump` is installed, and native ZIM article extraction is deferred as a targeted size-guarded job. |
-| 6 | T019 Build ChromaDB library index | Complete | ChromaDB `guide_library` contains 213,850 indexed chunks for all 56,136 corpus documents. |
-| 7 | T029 Add RAG orchestration endpoint | Complete with Warnings | `/api/ask-library` retrieves Chroma chunks, builds source context, asks Ollama, and returns cited answers; answer quality still depends on corpus coverage and future native ZIM extraction. |
+| 1 | T008 Ollama backend | Complete | Required model runtime for chat, vision, and embeddings. |
+| 2 | T028 Pull `nomic-embed-text` | Complete | Required to generate embeddings offline. |
+| 3 | T016 Library UI | Complete with Warnings | Establishes local library access and source URLs; deeper search remains a continuing refinement. |
+| 4 | T017 ZIM import | Complete with Warnings | Provides the trusted offline source corpus. |
+| 5 | T018 Extract ZIM and HTML text | Complete with Warnings | Generated the HTML/text corpus under `data/rag/corpus`; native ZIM extraction remains guarded by size limits. |
+| 6 | T019 Build ChromaDB library index | Complete | ChromaDB `guide_library` contains 213,850 indexed chunks for 56,136 corpus documents. |
+| 7 | T029 Add RAG orchestration endpoint | Complete with Warnings | `/api/ask-library` retrieves Chroma chunks, builds source context, asks Ollama, and returns cited answers. |
 | 8 | T020 Add Ask Library UI | Complete with Warnings | Ask Library status, citation rendering, risk notes, fallback behavior, and auth-policy status are implemented. |
-| 9 | T021 Add RAG operations checks | Complete with Warnings | RAG ops checks validate corpus manifest rows, source inventory, index freshness, indexed chunk counts, and live Chroma collection count; warnings remain for deferred/partial ZIM extraction. |
-| 10 | T023 Define household preparedness profile schema | Complete with Warnings | Establishes the household context used by preparedness and operations workflows. |
+| 9 | T021 Add RAG operations checks | Complete with Warnings | RAG ops checks validate corpus manifest rows, source inventory, index freshness, indexed chunk counts, and live Chroma collection count. |
+| 10 | T023 Define household preparedness profile schema | Complete with Warnings | Establishes household context used by preparedness and operations workflows. |
 | 11 | T024 Define preparedness inventory schema | Complete with Warnings | Adds local supplies data and gap calculations used during incidents. |
 | 12 | T025 Define incident records and operational timeline | Complete with Warnings | Adds incident status, resources, documents, recommendations, and timeline events under authenticated WebUI/API control. |
 | 13 | T026 Define communications center schema and templates | Complete with Warnings | Adds contacts, channels, message templates, and message logs for offline operations. |
-| 14 | T027 Decide map import/viewer strategy | Complete with Warnings | Adds a JSON-first offline map/resource context path and reserves `data/guide/maps` for future large map packages. |
+| 14 | T027 Decide map import/viewer strategy | Complete with Warnings | Adds a JSON-first offline map/resource context path and reserves `data/guide/maps` for future map packages. |
+| 15 | T030 Current GUIDE model inventory config | Complete | `config/models.json` now reflects the current GUIDE USB model set, including text, reasoning, coding, creative, vision, and embedding models. |
+| 16 | T031 Mac Review Picture vision patch | Complete | The Mac launcher patch ensures GUIDE uses the USB Ollama service so `moondream` and `qwen2.5-vl` are visible for Review Picture. |
+| 17 | T032 Tester beta plan | Complete | `BETA_TEST_PLAN.md` covers launch, offline use, Review Picture, Journal, buttons, all LLMs, emergency medical prompts, and README review. |
+| 18 | T033 GUIDE README expansion | Complete | `GUIDE_README.html` now explains models, first-10-minute workflow, test prompts, picture review, Journal, offline verification, privacy, safety, troubleshooting, and defect reporting. |
+| 19 | T034 Mac patch delivery package | Complete | `updates/guide-mac-vision-fix-1.3.1.zip` packages the Mac launcher fix, README, beta plan, and source files for testers. |
+| 20 | T035 GitHub upload | Complete | The updated model config, README, beta plan, GUIDE README, and Mac patch package were pushed to `adcwrk/guide_stick`. |
 
 ## Phase Gates
 
 | Gate | Required Tasks | Exit Criteria |
 |---|---|---|
-| Model Gate | T008, T028 | Ollama is reachable and `nomic-embed-text` is available in the USB-local model store. |
+| Model Gate | T008, T028, T030 | Ollama is reachable; chat, vision, and embedding models are represented in config and available on the GUIDE USB. |
 | Corpus Gate | T016, T017, T018 | Library content is copied, browsable, and extracted to `data/rag/corpus`. |
 | Index Gate | T009, T019 | ChromaDB index exists under `data/chroma/library` and can be rebuilt/resumed. |
 | Application Gate | T029, T020 | `/api/ask-library` answers questions with citations and the WebUI can call it. |
-| Operations Gate | T021 | Health checks report model, corpus, index, and source manifest status. |
+| Operations Gate | T021, T023, T024, T025, T026, T027 | Health checks, schemas, examples, and operational JSON paths exist for preparedness workflows. |
+| Tester Gate | T031, T032, T033, T034 | Mac testers can apply the vision patch and execute documented beta coverage. |
+| Repository Gate | T035 | GitHub contains the current model configuration and tester delivery package. |
 
 ## Immediate Next Task
 
@@ -39,21 +47,20 @@ None.
 
 Reason: all tracked critical-path tasks are complete or complete with warnings.
 
-## Parallel Work That Does Not Block RAG
+## Remaining Warning Items
 
-None.
+- Native ZIM article extraction remains a deliberate targeted job guarded by `ZIM_MAX_BYTES`.
+- Some GUIDE WebUI areas use JSON editors; richer form-based dashboards remain future UX refinement.
+- Large `.mbtiles` or `.pmtiles` map viewer work remains deferred until a smaller region/export strategy is selected.
+- AnythingLLM and Open WebUI authentication still depend on their own first-run auth flows; TLS requires a separate reverse proxy.
+- Mac Review Picture fix is packaged and uploaded, but each tester should still verify it on their own Mac and USB.
 
-## Deferred or Warning Items
+## Completed Delivery Evidence
 
-- T017 is complete with warnings because the selected ZIM payload copied successfully, but rsync returned code 23 due to protected Matomo/Nextcloud/service runtime files outside the selected ZIM payload.
-- T018 is complete with warnings because 56,136 HTML/text corpus documents were generated with zero extraction failures, but full native ZIM article extraction remains a deliberate targeted job. USB-local `zimdump` is installed; large dumps are guarded by `ZIM_MAX_BYTES`.
-- T019 is complete: 56,136 corpus documents produced 213,850 indexed ChromaDB chunks with 0 indexing errors.
-- T029 is complete with warnings: `/api/ask-library` works against the completed Chroma index and returns cited answers, but retrieval quality is only as good as the current HTML/text corpus. Native ZIM article extraction remains deferred.
-- T011 is complete with warnings: lightweight GUIDE WebUI auth is enforced with HTTP Basic auth when `ENABLE_AUTH=true`; TLS requires a separate reverse proxy, and AnythingLLM/Open WebUI still rely on their own first-run auth flows.
-- T020 is complete with warnings: the WebUI exposes Ask Library with index readiness, citations, risk notes, fallback to normal chat, and auth-policy status.
-- T021 is complete with warnings: `scripts/check-rag-ops.sh` writes `data/rag/library_manifest.json` and `reports/rag_operations_report.md`; current checks report 15 pass, 2 warn, 0 fail. Warnings are deferred native ZIM extraction and one partial ZIM import record.
-- T023 is complete with warnings: the household profile schema, example template, authenticated `/api/profile` load/save endpoint, and WebUI JSON editor are implemented under `data/guide/profile`; richer form-based intake remains future UI refinement.
-- T024 is complete with warnings: the inventory schema, example template, authenticated `/api/inventory` load/save endpoint, WebUI JSON editor, and water/food/medication/power gap calculations are implemented under `data/guide/inventory`; richer category-specific inventory UI remains future refinement.
-- T025 is complete with warnings: the incident schema, example template, authenticated `/api/incidents` load/save endpoint, WebUI JSON editor, and operational timeline summary are implemented under `data/guide/incidents`; richer incident dashboard and guided operational forms remain future refinement.
-- T026 is complete with warnings: the communications schema, example template, authenticated `/api/communications` load/save endpoint, WebUI JSON editor, and communications summary are implemented under `data/guide/communications`; richer dashboard, radio settings, template rendering, and Meshtastic integration remain future refinements.
-- T027 is complete with warnings: the situational awareness schema, example template, authenticated `/api/situational-awareness` load/save endpoint, WebUI JSON editor, and map/resource summary are implemented under `data/guide/situational_awareness`; large `.mbtiles` or `.pmtiles` viewer work remains deferred until a smaller region/export strategy is selected.
+- `config/models.json`
+- `README.md`
+- `updates/guide-mac-vision-fix-1.3.1/guide-mac-vision-fix-1.3.1.zip`
+- `updates/guide-mac-vision-fix-1.3.1/BETA_TEST_PLAN.md`
+- `updates/guide-mac-vision-fix-1.3.1/GUIDE_README.html`
+- `updates/guide-mac-vision-fix-1.3.1/source/`
+- GitHub commit `73b2008`

@@ -1,5 +1,7 @@
 # GUIDE Tracker Agent
 
+Updated: 2026-08-12
+
 ## Role
 
 The GUIDE Tracker Agent maintains the planning system for the USB build. It decides what should be worked next, keeps phase status honest, and prevents the project from drifting away from the GUIDE product vision.
@@ -13,6 +15,8 @@ The GUIDE Tracker Agent maintains the planning system for the USB build. It deci
 - `tracker/roadmap.md`
 - Evidence files under `reports/`
 - Runtime checks from scripts under `scripts/`
+- Current delivery artifacts under `updates/`
+- Current model inventory under `config/models.json`
 
 ## Output
 
@@ -28,29 +32,37 @@ The agent should produce:
 
 1. Prefer incomplete `Critical Path=Yes` tasks over non-critical tasks.
 2. Within the critical path, choose the lowest `Sequence` task whose dependencies are complete or complete with warnings.
-3. Do not mark a task complete unless its acceptance criteria have evidence in files, reports, scripts, or runtime checks.
+3. Do not mark a task complete unless its acceptance criteria have evidence in files, reports, scripts, runtime checks, update artifacts, or repository commits.
 4. Use `Complete with Warnings` when the core outcome is achieved but known limitations remain.
 5. Keep user-data and source-library operations non-destructive.
 6. Preserve upstream Portable-AI-USB behavior when adding GUIDE functionality.
-7. For emergency-domain features, require source citations or documented limitations.
+7. For emergency-domain features, require source citations, explicit safety boundaries, or documented limitations.
+8. For tester-delivery work, require a runnable artifact plus clear tester instructions.
 
 ## Current Recommendation Logic
 
 As of this tracker version:
 
-1. T028 is complete.
-2. T018 is complete with warnings.
-3. T019 is complete.
-4. T029 is complete with warnings.
-5. T020 is complete with warnings.
-6. T021 is complete with warnings.
-7. T011 is complete with warnings.
-8. T023 is complete with warnings.
-9. T024 is complete with warnings.
-10. T025 is complete with warnings.
-11. T026 is complete with warnings.
-12. T027 is complete with warnings.
-13. No tracked critical-path task remains incomplete.
+1. RAG critical path tasks T016, T017, T018, T019, T020, T021, T028, and T029 are complete or complete with warnings.
+2. GUIDE operations schema tasks T023, T024, T025, T026, and T027 are complete with warnings.
+3. Current model inventory task T030 is complete.
+4. Mac Review Picture patch task T031 is complete.
+5. Beta test plan task T032 is complete.
+6. GUIDE README expansion task T033 is complete.
+7. Mac patch package task T034 is complete.
+8. GitHub upload task T035 is complete.
+9. No tracked critical-path task remains incomplete.
+
+## Recommended Next Work
+
+No immediate critical-path task is open.
+
+Useful next candidates, if requested:
+
+- Create release notes and a checksum manifest for `guide-mac-vision-fix-1.3.1`.
+- Add automated smoke tests for model visibility and launcher behavior.
+- Convert GUIDE preparedness JSON editors into guided UI forms.
+- Add smaller-region offline map package strategy and viewer validation.
 
 ## Agent Prompt
 
