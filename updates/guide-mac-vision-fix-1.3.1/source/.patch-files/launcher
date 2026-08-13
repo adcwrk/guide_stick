@@ -1,0 +1,110 @@
+#!/bin/bash
+# Guide macOS Launcher
+# Handles Gatekeeper, starts Ollama, launches app, cleans up on exit.
+
+DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+APP="$DIR/.internal/apps/Guide.app"
+OLLAMA_BIN="$DIR/.internal/ollama/mac/ollama"
+OLLAMA_MODELS_DIR="$DIR/.internal/models"
+OLLAMA_PORT=11434
+
+# --- Hide non-Mac files in Finder (cross-platform USB) ---
+# Idempotent — running multiple times is fine. macOS hides files marked +hidden.
+chflags hidden "$DIR/Guide (Windows).bat" 2>/dev/null
+chflags hidden "$DIR/Guide (Linux).sh" 2>/dev/null
+# Defensive: ensure the Mac launcher itself stays visible (mirror of Win .bat fix)
+chflags nohidden "$DIR/Guide (Mac).app" 2>/dev/null
+
+# --- Handle Gatekeeper / quarantine ---
+# Remove quarantine from all internal binaries (USB triggers this)
+xattr -cr "$APP" 2>/dev/null
+xattr -cr "$OLLAMA_BIN" 2>/dev/null
+# Also clear on the launcher .app itself (prevents "damaged" warning on next launch)
+xattr -cr "$DIR/Guide (Mac).app" 2>/dev/null
+
+# If macOS still blocks the main app, try spctl override
+if ! spctl --assess --type execute "$APP" 2>/dev/null; then
+  spctl --add "$APP" 2>/dev/null
+fi
+
+# --- Check install config: reset to USB mode if local path doesn't exist ---
+CONFIG_FILE="$DIR/.internal/install-config.json"
+if [ -f "$CONFIG_FILE" ]; then
+  CONFIG_MODE=$(python3 -c "import json;print(json.load(open('$CONFIG_FILE')).get('mode','usb'))" 2>/dev/null || echo "usb")
+  CONFIG_PATH=$(python3 -c "import json;print(json.load(open('$CONFIG_FILE')).get('modelsPath',''))" 2>/dev/null || echo "")
+  if [ "$CONFIG_MODE" != "usb" ] && [ -n "$CONFIG_PATH" ] && [ ! -d "$CONFIG_PATH" ]; then
+    # Lite/Full path from another computer doesn't exist here — reset to USB mode
+    python3 -c "
+import json
+with open('$CONFIG_FILE','r+') as f:
+  cfg=json.load(f)
+  cfg['mode']='usb'
+  cfg['modelsPath']=''
+  cfg['completed']=True
+  f.seek(0);json.dump(cfg,f,indent=2);f.truncate()
+" 2>/dev/null
+  fi
+fi
+
+# --- Publish USB engine configuration for GUI-launched processes. ---
+launchctl setenv GUIDE_USB_ROOT "$DIR" 2>/dev/null
+launchctl setenv OLLAMA_MODELS "$OLLAMA_MODELS_DIR" 2>/dev/null
+launchctl setenv OLLAMA_ORIGINS "*" 2>/dev/null
+
+# --- Start bundled Ollama from the USB before launching GUIDE. ---
+# If the desktop Ollama app is already bound to 11434, GUIDE can see only the
+# user's local models and picture review reports "No vision model available".
+_start_usb_ollama() {
+  if [ ! -f "$OLLAMA_BIN" ]; then
+    return 1
+  fi
+
+  launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.ollama.plist 2>/dev/null
+
+  if lsof -i :$OLLAMA_PORT > /dev/null 2>&1; then
+    RUNNING_PID=$(lsof -ti :$OLLAMA_PORT 2>/dev/null | head -1)
+    if [ -n "$RUNNING_PID" ]; then
+      RUNNING_CMD=$(ps -p "$RUNNING_PID" -o command= 2>/dev/null || true)
+      if echo "$RUNNING_CMD" | grep -q "$OLLAMA_BIN" 2>/dev/null; then
+        return 0
+      fi
+      kill "$RUNNING_PID" 2>/dev/null
+      pkill -f "/Applications/Ollama.app" 2>/dev/null
+      pkill -f "ollama serve" 2>/dev/null
+      sleep 1
+    fi
+  fi
+
+  export GUIDE_USB_ROOT="$DIR"
+  export OLLAMA_MODELS="$OLLAMA_MODELS_DIR"
+  export OLLAMA_ORIGINS="*"
+  chmod +x "$OLLAMA_BIN"
+  "$OLLAMA_BIN" serve > "$DIR/.internal/diag/ollama-usb.log" 2>&1 &
+  OLLAMA_PID=$!
+
+  for i in $(seq 1 40); do
+    if curl -sf "http://127.0.0.1:$OLLAMA_PORT/api/tags" | grep -q "moondream\\|qwen2.5-vl"; then
+      return 0
+    fi
+    sleep 0.5
+  done
+
+  return 0
+}
+
+_start_usb_ollama
+
+if [ -d "$APP" ]; then
+  open "$APP"
+  (
+    sleep 2
+    while pgrep -x "Guide" > /dev/null 2>&1; do
+      sleep 5
+    done
+    if [ -n "$OLLAMA_PID" ] && kill -0 "$OLLAMA_PID" 2>/dev/null; then
+      kill "$OLLAMA_PID" 2>/dev/null
+    fi
+  ) &
+else
+  osascript -e 'display dialog "Guide app not found.\nMake sure the USB drive is connected." buttons {"OK"} default button "OK" with icon stop with title "Guide"' 2>/dev/null
+fi

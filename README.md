@@ -4,7 +4,7 @@ GUIDE is a Portable-AI-USB-compatible deployment that runs from a USB flash driv
 
 GUIDE also stands for **Generative Unified Intelligence for Disaster and Emergency Management**. The long-term product vision is an offline-first preparedness, response, and operational decision-support platform, not only a chatbot. See `reports/guide_product_vision.md` for the full mission, platform model, and roadmap direction.
 
-**Now with multi-model support!** Choose from 6 curated AI models or bring your own.
+**Now with multi-model support!** GUIDE USB builds can carry fast chat models, larger planning and reasoning models, coding and creative models, local document retrieval, and offline vision models for picture review.
 
 ## 📺 Watch the Tutorial
 
@@ -13,20 +13,40 @@ GUIDE also stands for **Generative Unified Intelligence for Disaster and Emergen
 
 ## ⚡ Available Models
 
-During installation, you'll choose which model(s) to download:
+The current GUIDE model inventory is tracked in `config/models.json`. The active USB configuration includes:
 
-| # | Model | Size | Label | Best For |
-|---|-------|------|-------|----------|
-| 1 | **NemoMix Unleashed 12B** | ~7.0 GB | 🔓 UNCENSORED | ⭐ Recommended — best quality uncensored |
-| 2 | **Dolphin 2.9 Llama 3 8B** | ~4.9 GB | 🔓 UNCENSORED | Classic uncensored all-rounder |
-| 3 | **Mistral 7B Instruct v0.3** | ~4.1 GB | 🔒 STANDARD | Strong reasoning & coding |
-| 4 | **Qwen 2.5 7B Instruct** | ~4.7 GB | 🔒 STANDARD | Great multilingual support |
-| 5 | **Llama 3.2 3B Instruct** | ~2.0 GB | 🔒 STANDARD | Lightweight — fast on old PCs |
-| 6 | **Phi-3.5 Mini 3.8B** | ~2.2 GB | 🔒 STANDARD | Lightweight — good reasoning |
-| C | **Custom GGUF** | Varies | 🎨 CUSTOM | Bring your own HuggingFace model |
+| Model | Type | Best For |
+|---|---|---|
+| `qwen2.5:0.5b` | Fast chat | Short answers, quick checklists, low-power computers |
+| `llama3.2:1b` | Fast chat | Simple emergency questions and fast follow-ups |
+| `qwen2.5:3b` | Balanced chat | Daily planning, household readiness, concise explanations |
+| `llama3.1:8b` | General chat | More complete emergency plans and communications |
+| `qwen2.5:14b` | Planning | Detailed analysis, longer checklists, nuanced tradeoffs |
+| `deepseek-r1:7b` | Reasoning | Step-by-step decisions, triage logic, option comparison |
+| `deepseek-r1:14b` | Reasoning | Complex decisions when speed is less important |
+| `qwen2.5-coder:7b` | Coding | Scripts, calculations, data formatting, troubleshooting logic |
+| `fluffy/l3-8b-stheno-v3.2:q4_K_M` | Creative | Scenario rehearsal, announcements, roleplay drills |
+| `AliBilge/Huihui-GLM-4.6V-Flash-abliterated:q4_K_M` | General chat | Moderate-size open-ended assistant |
+| `AliBilge/Huihui-GLM-4.6V-Flash-abliterated:q5_k_m` | General chat | Higher-quality GLM responses with slower latency |
+| `moondream:latest` | Vision | Fast picture review |
+| `huihui_ai/qwen2.5-vl-abliterated:7b-instruct` | Vision | More detailed picture review |
+| `nomic-embed-text:latest` | Retrieval | Local document search and RAG embeddings |
 
-> **🔓 UNCENSORED** = No content filters, answers everything  
-> **🔒 STANDARD** = Normal safety guidelines apply
+`nomic-embed-text:latest` supports retrieval and should not be presented as a normal chat model.
+
+## 🧪 Mac Vision Patch and Beta Test
+
+The Mac Review Picture fix and current tester materials are stored under:
+
+`updates/guide-mac-vision-fix-1.3.1/`
+
+Send `updates/guide-mac-vision-fix-1.3.1/guide-mac-vision-fix-1.3.1.zip` to Mac testers. It updates the Mac launcher so GUIDE uses the USB Ollama model directory before opening the app, which fixes the `No vision model available (e.g. moondream, qwen2.5-vl)` error when a separately installed Ollama service is running.
+
+The same folder also contains:
+
+- `BETA_TEST_PLAN.md`
+- `GUIDE_README.html`
+- patch source files for audit/rebuild
 
 ## 🚀 Setup (One Time Only)
 
