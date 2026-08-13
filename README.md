@@ -1,251 +1,131 @@
-# GUIDE — Portable AI USB Deployment
+# GUIDE USB Configuration
 
-GUIDE is a Portable-AI-USB-compatible deployment that runs from a USB flash drive. No internet is needed after setup. Runtime data is kept on the USB where technically practical. Works on **Windows**, **Mac**, and **Linux**, with added Apple Silicon, Linux/NUC, and LAN GUI support.
+This repository tracks the current GUIDE USB configuration, tester documentation, update packages, and project tracker files.
 
-GUIDE also stands for **Generative Unified Intelligence for Disaster and Emergency Management**. The long-term product vision is an offline-first preparedness, response, and operational decision-support platform, not only a chatbot. See `reports/guide_product_vision.md` for the full mission, platform model, and roadmap direction.
+GUIDE stands for Generative Unified Intelligence for Disaster and Emergency Management. It is an offline-first emergency preparedness and field-support system intended to launch from a USB drive on Windows, macOS, or Linux.
 
-**Now with multi-model support!** GUIDE USB builds can carry fast chat models, larger planning and reasoning models, coding and creative models, local document retrieval, and offline vision models for picture review.
+The current shipped USB is a packaged desktop app layout. Files from earlier setup approaches have been removed from this repository so the repo reflects the current GUIDE USB state.
 
-## 📺 Watch the Tutorial
+## Current USB Launchers
 
-[![Portable AI USB Tutorial](https://img.youtube.com/vi/cqrMfO6AZRU/maxresdefault.jpg)](https://youtu.be/cqrMfO6AZRU)
+On the mounted GUIDE USB, testers launch GUIDE with:
 
+| OS | Launcher |
+|---|---|
+| Windows | `Guide (Windows).lnk` or `Guide (Windows).bat` |
+| macOS | `Guide (Mac).app` |
+| Linux | `Guide (Linux).sh` |
 
-## ⚡ Available Models
+The packaged app and runtime files live under `.internal/` on the USB:
 
-The current GUIDE model inventory is tracked in `config/models.json`. The active USB configuration includes:
+```text
+Guide/
+├── Guide (Windows).lnk
+├── Guide (Windows).bat
+├── Guide (Mac).app
+├── Guide (Linux).sh
+├── GUIDE_README.html
+├── BETA_TEST_PLAN.md
+├── updates/
+└── .internal/
+    ├── apps/
+    ├── ollama/
+    ├── models/
+    ├── library/
+    ├── maps/
+    ├── guides/
+    ├── whisper/
+    └── diag/
+```
 
-| Model | Type | Best For |
-|---|---|---|
-| `qwen2.5:0.5b` | Fast chat | Short answers, quick checklists, low-power computers |
-| `llama3.2:1b` | Fast chat | Simple emergency questions and fast follow-ups |
-| `qwen2.5:3b` | Balanced chat | Daily planning, household readiness, concise explanations |
-| `llama3.1:8b` | General chat | More complete emergency plans and communications |
-| `qwen2.5:14b` | Planning | Detailed analysis, longer checklists, nuanced tradeoffs |
-| `deepseek-r1:7b` | Reasoning | Step-by-step decisions, triage logic, option comparison |
-| `deepseek-r1:14b` | Reasoning | Complex decisions when speed is less important |
-| `qwen2.5-coder:7b` | Coding | Scripts, calculations, data formatting, troubleshooting logic |
-| `fluffy/l3-8b-stheno-v3.2:q4_K_M` | Creative | Scenario rehearsal, announcements, roleplay drills |
-| `AliBilge/Huihui-GLM-4.6V-Flash-abliterated:q4_K_M` | General chat | Moderate-size open-ended assistant |
-| `AliBilge/Huihui-GLM-4.6V-Flash-abliterated:q5_k_m` | General chat | Higher-quality GLM responses with slower latency |
-| `moondream:latest` | Vision | Fast picture review |
-| `huihui_ai/qwen2.5-vl-abliterated:7b-instruct` | Vision | More detailed picture review |
-| `nomic-embed-text:latest` | Retrieval | Local document search and RAG embeddings |
+## Runtime Behavior
+
+GUIDE uses the bundled USB Ollama runtime and the USB model directory when possible.
+
+Current packaged runtime paths:
+
+| Runtime | USB Path |
+|---|---|
+| Windows app | `.internal/apps/windows/Guide.exe` |
+| macOS app | `.internal/apps/Guide.app` |
+| Linux app | `.internal/apps/linux/guide` |
+| Windows Ollama | `.internal/ollama/win/ollama.exe` |
+| macOS Ollama | `.internal/ollama/mac/ollama` |
+| Linux Ollama | `.internal/ollama/linux/bin/ollama` |
+| Models | `.internal/models` |
+
+The macOS launcher is especially important for Review Picture. It starts the USB-bundled Ollama runtime before opening GUIDE and avoids using a separately installed host Ollama app that may not have vision models.
+
+## Current Models
+
+The current model inventory is tracked in `config/models.json`.
+
+Active models include:
+
+| Model | Role |
+|---|---|
+| `qwen2.5:0.5b` | Fastest basic assistant |
+| `llama3.2:1b` | Lightweight general assistant |
+| `qwen2.5:3b` | Balanced daily preparedness assistant |
+| `llama3.1:8b` | Stronger general planning and communication |
+| `qwen2.5:14b` | Larger detailed planning model |
+| `deepseek-r1:7b` | Reasoning and triage logic |
+| `deepseek-r1:14b` | Larger reasoning model |
+| `qwen2.5-coder:7b` | Coding and technical troubleshooting |
+| `fluffy/l3-8b-stheno-v3.2:q4_K_M` | Creative drills and roleplay |
+| `AliBilge/Huihui-GLM-4.6V-Flash-abliterated:q4_K_M` | General open-ended assistant |
+| `AliBilge/Huihui-GLM-4.6V-Flash-abliterated:q5_k_m` | Higher-quality GLM assistant |
+| `moondream:latest` | Fast picture review |
+| `huihui_ai/qwen2.5-vl-abliterated:7b-instruct` | Detailed picture review |
+| `nomic-embed-text:latest` | Retrieval embeddings |
 
 `nomic-embed-text:latest` supports retrieval and should not be presented as a normal chat model.
 
-## 🧪 Mac Vision Patch and Beta Test
+## Tester Files
 
-The Mac Review Picture fix and current tester materials are stored under:
+Current tester-facing files:
 
-`updates/guide-mac-vision-fix-1.3.1/`
-
-Send `updates/guide-mac-vision-fix-1.3.1/guide-mac-vision-fix-1.3.1.zip` to Mac testers. It updates the Mac launcher so GUIDE uses the USB Ollama model directory before opening the app, which fixes the `No vision model available (e.g. moondream, qwen2.5-vl)` error when a separately installed Ollama service is running.
-
-The same folder also contains:
-
-- `BETA_TEST_PLAN.md`
 - `GUIDE_README.html`
-- patch source files for audit/rebuild
+- `BETA_TEST_PLAN.md`
+- `updates/guide-mac-vision-fix-1.3.1/guide-mac-vision-fix-1.3.1.zip`
+- `updates/guide-mac-vision-fix-1.3.1/source/README.txt`
+- `updates/guide-mac-vision-fix-1.3.1/source/apply-mac-vision-fix.command`
 
-## 🚀 Setup (One Time Only)
+## Mac Vision Fix
 
-### What You Need
-- A USB flash drive with **at least 16 GB** of free space (32 GB recommended for multiple models)
-- Format the USB as **exFAT** (works on Windows, Mac, and Linux)
-- An internet connection for the initial download
+The current Mac Review Picture patch is stored in:
 
-### Steps
-
-1. **Download this repo** and copy ALL files to your USB drive
-2. **Double-click `install.bat`** on the USB drive
-3. **Choose your model(s)** from the interactive menu
-4. **Interactive AnythingLLM Setup**:
-   - The AnythingLLM installer will open automatically.
-   - **IMPORTANT**: When asked for the "Install Location", click **Browse** and select the `anythingllm` folder on your USB drive.
-   - Wait for it to finish, then close the installer window.
-5. **Done!** Your portable AI is ready to use.
-
-### ⚠️ If a Model Download Fails
-
-The installer automatically retries failed downloads. If it still fails:
-
-1. **Download the model manually** from the HuggingFace resolved link shown in the console error.
-2. **Place the .gguf file** into the `models\` folder on your USB.
-3. **Re-run `install.bat`** — it will detect the file and skip the download.
-
-### 🔄 Adding More Models Later
-
-Just **re-run `install.bat`** and select additional models. Already-downloaded models are automatically skipped.
-
-### 🎨 Custom Models
-
-Want a model not on the list? During install, choose option **C** and paste any direct `.gguf` download link from HuggingFace. The installer handles the rest!
-
-### 🗄️ Configuring Ollama Token Limit / Context Size
-
-By default, the installer configures Ollama with a 4K token limit for optimal performance on most PCs. If you want to adjust this, follow these steps after install script has finished running:
-
-1. Open this folder on your USB drive. `anythingllm_data/storage`
-2. Open the `.env` file in a text editor.
-3. Find the line that says `OLLAMA_MODEL_TOKEN_LIMIT=4096` and change `4096` to your desired token limit (e.g., `8192` for 8K tokens).
-4. Save the file and restart the AI using the launcher script `start-windows.bat` or `start-mac.command` or `start-linux.sh`.
-5. Incase if you re-run the installer script `install.bat` or `install.sh` it will reset the token limit back to 4096, so you will need to change it again in the `.env` file.
-6. For mac, you may re-run the `start-mac.command` script and it will not overwrite the token limit in the `.env` file, so you can just restart the AI using this script after changing the token limit in the `.env` file.
-
-## ▶️ How to Use
-
-### On Windows
-- Double-click **`start-windows.bat`** on the USB drive.
-- **Improved Portability**: The launcher now automatically clears old path caches. This allows you to move between different computers without "JavaScript errors."
-- The AnythingLLM chat window will open automatically.
-- **Switch between models** in AnythingLLM: Settings → LLM → select your model.
-- Keep the black terminal window open while chatting.
-- Press any key in the terminal to safely shut down.
-
-### On Mac
-- Double-click **`start-mac.command`** on the USB drive.
-- First time: It will automatically download the Mac engine (~2 min).
-- The AnythingLLM window will open automatically.
-- Press ENTER in the terminal to safely shut down.
-
-### Apple Silicon / Remote GUI Mode
-
-This enhanced USB build keeps the original launcher behavior and adds optional LAN GUI support through `config/portable.env`.
-
-1. Copy `config/portable.env.example` to `config/portable.env`.
-2. Review the remote access defaults:
-   - GUI remote access is enabled on LAN with `BIND_ADDRESS=0.0.0.0`.
-   - Ollama remote API stays disabled unless `ENABLE_REMOTE_OLLAMA=true`.
-   - GUI authentication is expected with `ENABLE_AUTH=true`.
-3. Run `bash setup-mac.sh` on Apple Silicon to prepare models and USB folders.
-4. Start with `./start-mac.command`.
-
-The launcher prints local, LAN, and hostname URLs for AnythingLLM and Open WebUI when available.
-
-### Linux / Intel NUC
-
-Root-level NUC scripts are provided without replacing the upstream Linux folder:
-
-```bash
-bash setup-linux.sh
-bash start-linux.sh
+```text
+updates/guide-mac-vision-fix-1.3.1/
 ```
 
-The NUC launcher validates the GUIDE USB, detects host Ollama where available, avoids killing existing services, starts configured GUIs when possible, and prints LAN URLs.
+Send this zip to Mac testers:
 
-### 🐧 On Linux
-
-1. Open a terminal on your USB drive.
-2. Run the launcher:
-   make it executable first:
-   ```bash
-   chmod +x start-linux.sh preflight-check.sh install.sh install-core.sh 
-   ```
-   ```bash
-   bash preflight-check.sh
-   ```
-
-3. The preflight script checks for everything and executes the install script.
-4. open **ANYTHING LLM** folder and open the appImage there
-4. **Switch between models**: Settings → LLM → select your model.
-5. Keep the terminal open while chatting.
-6. Press **Enter** in the terminal to safely shut down.
-
----
-
-## 🔐 Privacy
-
-- **All chats & settings stay on the USB** — never saved to the host PC.
-- No registry keys or local files are left behind.
-- Works completely offline after initial setup.
-- No telemetry, no cloud, no tracking.
-
-## 🔐 LAN Access and Authentication
-
-Remote GUI access is intended for trusted LANs only. Do not expose these ports directly to the public internet.
-
-- AnythingLLM: default port `3001`
-- Open WebUI: default port `8080`
-- Ollama: default port `11434`, remote access disabled unless `ENABLE_REMOTE_OLLAMA=true`
-- Lightweight GUIDE WebUI: protected with HTTP Basic auth when `ENABLE_AUTH=true`
-
-No passwords are hard-coded in this repository. For the lightweight GUIDE WebUI, set `GUIDE_WEBUI_USER` plus either `GUIDE_WEBUI_PASSWORD` or `GUIDE_WEBUI_PASSWORD_FILE` in `config/portable.env`. If no password source is set and `ENABLE_AUTH=true`, the WebUI generates `config/guide-webui.password` on first run. That file is ignored by git.
-
-HTTP Basic auth is not a TLS replacement. Keep LAN access on a trusted network unless a separate authenticated TLS reverse proxy is provided. For AnythingLLM or Open WebUI, complete the GUI's first-run admin or user setup before relying on LAN access.
-
-## GUIDE Household Profile
-
-GUIDE stores household preparedness profile data under `data/guide/profile`. The schema and example template are tracked in git; the local household profile JSON file is ignored so private household details stay on the USB. The lightweight GUIDE WebUI exposes authenticated `GET /api/profile` and `POST /api/profile` endpoints and includes a profile editor backed by that schema.
-
-## GUIDE Preparedness Inventory
-
-GUIDE stores preparedness inventory data under `data/guide/inventory`. The schema and example template are tracked in git; the local inventory JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/inventory` and `POST /api/inventory` endpoints, calculates water, food, medication, and power gaps from the household profile, and displays critical inventory shortfalls.
-
-## GUIDE Incident Records
-
-GUIDE stores incident records and operational timelines under `data/guide/incidents`. The schema and example template are tracked in git; the local incidents JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/incidents` and `POST /api/incidents` endpoints, summarizes incident status and severity counts, and displays the latest timeline events for active operations.
-
-## GUIDE Communications Center
-
-GUIDE stores communications planning data under `data/guide/communications`. The schema and example template are tracked in git; the local communications JSON file is ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/communications` and `POST /api/communications` endpoints for contacts, communications channels, message templates, and message logs, including future-ready Meshtastic channel planning.
-
-## GUIDE Situational Awareness
-
-GUIDE stores offline map and resource context under `data/guide/situational_awareness`, with large future map files reserved under `data/guide/maps`. The schema and example template are tracked in git; the local situational awareness JSON file and large map packages are ignored. The lightweight GUIDE WebUI exposes authenticated `GET /api/situational-awareness` and `POST /api/situational-awareness` endpoints for hazards, resources, shelters, hospitals, routes, and communications infrastructure.
-
-## 📁 USB Drive Structure (After Setup) - WINDOWS & MAC
-
-```
-USB Drive/
-├── install.bat             ← Run this first (one time only)
-├── install-core.ps1        ← Setup script (called by install.bat)
-├── start-windows.bat       ← Windows launcher (with auto-cache clearing)
-├── start-mac.command       ← Mac launcher
-├── ollama/                 ← AI engine (Windows)
-├── models/                 ← AI model files (.gguf) & configs
-│   ├── installed-models.txt    ← List of installed models
-│   └── *.gguf                  ← Model weights
-├── anythingllm/            ← Your AI Interface (installed here)
-├── installer_data/         ← Temporary installer files (auto-cleaned)
-└── anythingllm_data/       ← Your chats & settings (100% portable!)
-```
-## 📁 USB Drive Structure (After Setup) - LINUX
-
-```
-USB Drive/
-├── install.sh             ← Linux / Mac installer
-├── preflight-check.sh     ← Linux USB drive health check [ run this first ] 
-├── install-core.sh        ← Core setup logic (called by install.sh)
-└── start-linux.sh         ← Linux launcher
-├── ollama/                 ← AI engine (Windows)
-├── models/                 ← AI model files (.gguf) & configs
-│   ├── installed-models.txt    ← List of installed models
-│   └── *.gguf                  ← Model weights
-├── anythingllm/            ← Your AI Interface (installed here)
-├── installer_data/         ← Temporary installer files (auto-cleaned)
-└── anythingllm_data/       ← Your chats & settings (100% portable!)
+```text
+updates/guide-mac-vision-fix-1.3.1/guide-mac-vision-fix-1.3.1.zip
 ```
 
----
+It fixes this error:
 
-## 💾 USB Size Guide
+```text
+No vision model available (e.g. moondream, qwen2.5-vl).
+```
 
-| Models | Minimum USB | Recommended USB |
-|--------|-------------|-----------------|
-| 1 lightweight (3B/3.8B) | 16 GB | 16 GB |
-| 1 recommended (NemoMix 12B) | 16 GB | 32 GB |
-| 2-3 models | 32 GB | 64 GB |
-| All 6 presets (~25 GB) | 64 GB | 64 GB |
+The patch updates the Mac launcher so GUIDE starts the bundled USB Ollama runtime and uses `.internal/models` before opening the app.
 
-## ⚠️ Important Notes
+## Tracker
 
-- **Manual Path Selection**: When installing AnythingLLM, you must manually select the `anythingllm` folder on the USB to keep it portable.
-- **Moving between PCs**: If you see a "JavaScript Error" on a new PC, just close it and run `start-windows.bat` again. The script will automatically wipe the old PC's cached paths and fix the run.
-- **Performance**: The AI runs on your **CPU** — responses take 10–30 seconds depending on hardware.
-- **RAM**: 12B models (NemoMix) need **at least 8 GB RAM**. 7B models need **at least 6 GB RAM**.
-- Always **safely eject** the USB before unplugging.
+Tracker files live in `tracker/`:
 
-## 📜 License
+- `tracker/backlog.md`
+- `tracker/critical_path.md`
+- `tracker/phase_tracker.md`
+- `tracker/roadmap.md`
+- `tracker/task_tracker.csv`
+- `tracker/tracker_agent.md`
 
-MIT License — See [LICENSE](LICENSE) for details.
+These files record the current completed work and remaining candidates.
+
+## Safety
+
+GUIDE is an offline support tool. It is not a replacement for emergency services, professional medical care, legal advice, or official disaster instructions. Emergency guidance should remain cautious and should direct users to call emergency services for urgent or life-threatening situations.

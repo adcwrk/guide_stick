@@ -1,104 +1,79 @@
 {
+  "target": {
+    "distribution": "Packaged GUIDE USB",
+    "last_reviewed": "2026-08-12",
+    "notes": "This service map describes the current shipped GUIDE USB layout."
+  },
   "services": [
     {
-      "name": "ollama",
-      "role": "model_backend",
+      "name": "guide-desktop-windows",
+      "role": "packaged_desktop_app",
+      "platform": "Windows x86_64",
+      "launcher": "Guide (Windows).lnk or Guide (Windows).bat",
+      "app_path": ".internal/apps/windows/Guide.exe",
+      "notes": "The visible Windows launcher runs .internal/launch.vbs, which starts USB Ollama and then opens Guide.exe."
+    },
+    {
+      "name": "guide-desktop-macos",
+      "role": "packaged_desktop_app",
+      "platform": "macOS arm64 on reviewed USB",
+      "launcher": "Guide (Mac).app",
+      "app_path": ".internal/apps/Guide.app",
+      "notes": "The visible Mac app is a shell launcher that prepares USB Ollama, clears quarantine attributes, and then opens the internal Guide.app."
+    },
+    {
+      "name": "guide-desktop-linux",
+      "role": "packaged_desktop_app",
+      "platform": "Linux x86_64",
+      "launcher": "Guide (Linux).sh",
+      "app_path": ".internal/apps/linux/guide",
+      "notes": "The Linux shell launcher starts USB Ollama, opens the bundled Linux app, and stops Ollama when the app exits."
+    },
+    {
+      "name": "ollama-windows",
+      "role": "local_model_backend",
+      "platform": "Windows x86_64",
       "default_port": 11434,
-      "default_bind": "127.0.0.1",
-      "remote_default": false,
-      "data_path": "ollama/data",
-      "auth": "none",
-      "notes": "Remote Ollama API exposure is disabled unless ENABLE_REMOTE_OLLAMA=true."
+      "bind": "127.0.0.1",
+      "binary_path": ".internal/ollama/win/ollama.exe",
+      "models_path": ".internal/models"
     },
     {
-      "name": "anythingllm",
-      "role": "primary_gui",
-      "default_port": 3001,
-      "default_bind": "0.0.0.0",
-      "remote_default": true,
-      "data_path": "data/anythingllm",
-      "auth": "gui_first_run_or_app_managed",
-      "notes": "Authentication must be completed in the AnythingLLM UI where supported. Desktop AppImage may not expose a LAN web server."
+      "name": "ollama-macos",
+      "role": "local_model_backend",
+      "platform": "macOS arm64 on reviewed USB",
+      "default_port": 11434,
+      "bind": "127.0.0.1",
+      "binary_path": ".internal/ollama/mac/ollama",
+      "models_path": ".internal/models",
+      "notes": "The Mac launcher kills conflicting host Ollama processes when needed so Review Picture can see USB vision models."
     },
     {
-      "name": "openwebui",
-      "role": "secondary_gui",
-      "default_port": 8080,
-      "default_bind": "0.0.0.0",
-      "remote_default": true,
-      "data_path": "data/openwebui",
-      "auth": "first_run_admin_account",
-      "notes": "Open WebUI normally requires first user/admin account creation. Store persistent data on USB."
+      "name": "ollama-linux",
+      "role": "local_model_backend",
+      "platform": "Linux x86_64",
+      "default_port": 11434,
+      "bind": "127.0.0.1",
+      "binary_path": ".internal/ollama/linux/bin/ollama",
+      "models_path": ".internal/models"
     },
     {
-      "name": "guide-webui",
-      "role": "lightweight_guide_rag_gui",
-      "default_port": 8080,
-      "default_bind": "0.0.0.0",
-      "remote_default": true,
-      "data_path": "data/guide_webui",
-      "auth": "http_basic_when_ENABLE_AUTH_true",
-      "notes": "Uses GUIDE_WEBUI_USER plus GUIDE_WEBUI_PASSWORD or GUIDE_WEBUI_PASSWORD_FILE. If neither password source is set, a local config/guide-webui.password file is generated on first run."
+      "name": "guide-library",
+      "role": "local_reference_library",
+      "path": ".internal/library",
+      "notes": "The reviewed USB includes a local library database and related files."
     },
     {
-      "name": "guide-profile",
-      "role": "household_preparedness_profile_store",
-      "default_port": null,
-      "default_bind": "local_storage",
-      "remote_default": false,
-      "data_path": "data/guide/profile",
-      "auth": "protected_by_guide_webui_auth",
-      "notes": "Stores the JSON Schema, example template, and local household_profile.json data file used by GUIDE preparedness workflows."
+      "name": "guide-maps",
+      "role": "offline_maps",
+      "path": ".internal/maps",
+      "notes": "The reviewed USB includes USA and world PMTiles map files."
     },
     {
-      "name": "guide-inventory",
-      "role": "preparedness_inventory_store",
-      "default_port": null,
-      "default_bind": "local_storage",
-      "remote_default": false,
-      "data_path": "data/guide/inventory",
-      "auth": "protected_by_guide_webui_auth",
-      "notes": "Stores the JSON Schema, example template, and local inventory.json data file used for duration and shortfall calculations."
-    },
-    {
-      "name": "guide-incidents",
-      "role": "incident_records_and_operational_timeline_store",
-      "default_port": null,
-      "default_bind": "local_storage",
-      "remote_default": false,
-      "data_path": "data/guide/incidents",
-      "auth": "protected_by_guide_webui_auth",
-      "notes": "Stores the JSON Schema, example template, and local incidents.json data file used for incident status, resources, recommendations, and timeline events."
-    },
-    {
-      "name": "guide-communications",
-      "role": "communications_planning_and_message_log_store",
-      "default_port": null,
-      "default_bind": "local_storage",
-      "remote_default": false,
-      "data_path": "data/guide/communications",
-      "auth": "protected_by_guide_webui_auth",
-      "notes": "Stores the JSON Schema, example template, and local communications.json data file used for contacts, channels, message templates, and message logs."
-    },
-    {
-      "name": "guide-situational-awareness",
-      "role": "offline_map_and_resource_context_store",
-      "default_port": null,
-      "default_bind": "local_storage",
-      "remote_default": false,
-      "data_path": "data/guide/situational_awareness",
-      "auth": "protected_by_guide_webui_auth",
-      "notes": "Stores the JSON Schema, example template, and local situational_awareness.json data file used for hazards, resources, shelters, hospitals, routes, and communications infrastructure. Large offline map files belong under data/guide/maps."
-    },
-    {
-      "name": "chromadb",
-      "role": "vector_store",
-      "default_port": null,
-      "default_bind": "localhost",
-      "remote_default": false,
-      "data_path": "data/chroma",
-      "auth": "local_storage",
-      "notes": "Preserve vector stores and back up before migrations."
+      "name": "guide-whisper",
+      "role": "local_speech_assets",
+      "path": ".internal/whisper",
+      "notes": "The reviewed USB includes whisper binaries/assets including ggml-tiny.en.bin."
     }
   ]
 }

@@ -1,63 +1,47 @@
-# Runtime data generated on the portable USB
-anythingllm_data/
-installer_data/
-library/
-ollama/data/
-ollama/bin/
-ollama/lib/
-ollama_mac/
-anythingllm_mac/
-anythingllm/*.AppImage
-anythingllm/*.partial
-data/anythingllm/*
-!data/anythingllm/.gitkeep
-data/openwebui/*
-!data/openwebui/.gitkeep
-data/chroma/*
-!data/chroma/.gitkeep
-data/rag/corpus/*
-!data/rag/corpus/.gitkeep
-data/rag/python-packages/
-data/chroma/library/
-data/guide/profile/household_profile.json
-data/guide/profile/*.local.json
-data/guide/profile/*.tmp
-data/guide/inventory/inventory.json
-data/guide/inventory/*.local.json
-data/guide/inventory/*.tmp
-data/guide/incidents/incidents.json
-data/guide/incidents/*.local.json
-data/guide/incidents/*.tmp
-data/guide/communications/communications.json
-data/guide/communications/*.local.json
-data/guide/communications/*.tmp
-data/guide/situational_awareness/situational_awareness.json
-data/guide/situational_awareness/*.local.json
-data/guide/situational_awareness/*.tmp
-data/guide/maps/*.mbtiles
-data/guide/maps/*.pmtiles
-data/guide/maps/*.tmp
-tools/uv/
-tools/python/
-tools/zim-tools/
-downloads/
-config/guide-webui.password
+# OS metadata
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
 
-# Large model binaries and Ollama blobs
-models/*.gguf
-models/blobs/
-models/manifests/
-
-# Generated logs and backup archives
-logs/*
-!logs/.gitkeep
-backups/*
-!backups/.gitkeep
-!backups/source/
-!backups/source/**
-
-# Temporary benchmark files
-.perf_bench_*.tmp
-.perf_bench_direct_*.tmp
+# Local/editor files
+*.swp
+*.swo
+*.tmp
+*.bak
+*.log
 __pycache__/
 */__pycache__/
+
+# Generated archives and unpacked staging areas
+*.partial
+*.download
+*.zip.tmp
+
+# Packaged GUIDE USB internals are not committed here.
+# Keep generated app/runtime/model payloads on the USB or in release artifacts.
+.internal/apps/
+.internal/ollama/
+.internal/models/
+.internal/library/
+.internal/maps/
+.internal/whisper/
+.internal/debug/
+.internal/diag/
+
+# Local private data
+*.local.json
+household_profile.json
+inventory.json
+incidents.json
+communications.json
+situational_awareness.json
+
+# Large model/runtime data
+models/
+ollama/
+*.gguf
+*.safetensors
+*.bin
+*.pmtiles
+*.mbtiles
